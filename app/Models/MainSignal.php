@@ -16,19 +16,16 @@ class MainSignal extends Model
         'RECEIVER_ID',
     ];
 
-    public function sendSignals()
+    /**
+     * المستخدم اللي أنشأ/استلم الثريد ده (RECEIVER_ID بيشاور على users.id).
+     */
+    public function receiver()
     {
-        return $this->hasMany(SendSignal::class, 'MAIN_SIGNAL_ID', 'MainSignalID');
+        return $this->belongsTo(User::class, 'RECEIVER_ID', 'id');
     }
 
-    public function signalAuths()
-    {
-        return $this->hasMany(SignalAuth::class, 'MAIN_SIGNAL_ID', 'MainSignalID');
-    }
-
-    public function signalUnits()
+    public function units()
     {
         return $this->hasMany(SignalUnit::class, 'MAIN_SEND_ID', 'MainSignalID');
     }
-
 }

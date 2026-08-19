@@ -1,36 +1,56 @@
 <!DOCTYPE html>
-<html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
-    <head>
-        <meta charset="utf-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1">
-        <meta name="csrf-token" content="{{ csrf_token() }}">
+<html lang="ar" dir="rtl">
 
-        <title>{{ config('app.name', 'Laravel') }}</title>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>@yield('title', 'الشبكة الوطنية للطوارئ - محافظة كفر الشيخ')</title>
 
-        <!-- Fonts -->
-        <link rel="preconnect" href="https://fonts.bunny.net">
-        <link href="https://fonts.bunny.net/css?family=figtree:400,500,600&display=swap" rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
-        <!-- Scripts -->
-        @vite(['resources/css/app.css', 'resources/js/app.js'])
-    </head>
-    <body class="font-sans antialiased">
-        <div class="min-h-screen bg-gray-100">
-            <livewire:layout.navigation />
+    {{-- Tailwind الحقيقي المبني عن طريق Vite، بدل رابط الـ CDN القديم --}}
+    @vite(['resources/css/app.css', 'resources/js/app.js'])
 
-            <!-- Page Heading -->
-            @if (isset($header))
-                <header class="bg-white shadow">
-                    <div class="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
-                        {{ $header }}
-                    </div>
-                </header>
+    @stack('styles')
+</head>
+
+<body class="bg-bg-soft text-slate-800 font-cairo">
+
+    <div id="overlay" class="fixed inset-0 bg-black/50 z-40 hidden lg:hidden"></div>
+
+    @include('partials.sidebar')
+
+    <div class="lg:mr-72 min-h-screen flex flex-col transition-all duration-300">
+
+        @include('partials.header')
+
+        <main class="flex-1 p-6 sm:p-10">
+            @if (session('success'))
+                <div class="mb-6 p-4 bg-green-50 border border-green-200 text-green-700 rounded-2xl font-bold flex items-center gap-3">
+                    <i class="fas fa-check-circle text-xl"></i>
+                    {{ session('success') }}
+                </div>
             @endif
 
-            <!-- Page Content -->
-            <main>
-                {{ $slot }}
-            </main>
-        </div>
-    </body>
+            {{-- مكان محتوى كل صفحة --}}
+            @yield('content')
+        </main>
+
+        <footer class="p-6 text-center text-slate-400 text-sm border-t border-slate-200 bg-white/50">
+            <p>جميع الحقوق محفوظة &copy; {{ date('Y') }} - الشبكة الوطنية للطوارئ بكفر الشيخ</p>
+        </footer>
+    </div>
+
+    @include('partials.logout-modal')
+
+    {{-- سكريبت مشترك لكل الصفحات: فتح/قفل السايدبار، الدروب داون، المودال --}}
+    <script src="{{ asset('assets/js/layout.js') }}"></script>
+
+    {{-- أي سكريبت خاص بصفحة معينة يتحط هنا --}}
+    @stack('scripts')
+
+    @include('partials.tmam-reminder')
+</body>
+
 </html>

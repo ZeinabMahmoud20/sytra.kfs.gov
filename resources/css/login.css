@@ -1,0 +1,47 @@
+.brand-link {
+    text-decoration: none;
+    color: inherit;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.login-logo {
+    width: 100px;
+    height: 100px;
+    object-fit: contain;
+    background: white;
+    padding: 10px;
+    border-radius: 50%;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+    border: 3px solid rgba(255, 255, 255, 0.3);
+    display: block;
+    margin: 0 auto 1.5rem;
+}
+
+.login-wrapper {
+    max-width: 550px;
+}
+
+.login-form-grid {
+    grid-template-columns: 1fr;
+}
+
+.password-meta {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 8px;
+}
+
+.remember-me-label {
+    margin-top: 0;
+    font-size: 0.85rem;
+}
+
+.forgot-password-link {
+    color: var(--accent-color);
+    text-decoration: none;
+    font-size: 0.85rem;
+    font-weight: 600;
+}

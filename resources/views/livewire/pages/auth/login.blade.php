@@ -25,47 +25,144 @@ new #[Layout('layouts.guest')] class extends Component
 }; ?>
 
 <div>
-    <!-- Session Status -->
-    <x-auth-session-status class="mb-4" :status="session('status')" />
+    <main class="register-main">
 
-    <form wire:submit="login">
-        <!-- Email Address -->
-        <div>
-            <x-input-label for="email" :value="__('Email')" />
-            <x-text-input wire:model="form.email" id="email" class="block mt-1 w-full" type="email" name="email" required autofocus autocomplete="username" />
-            <x-input-error :messages="$errors->get('form.email')" class="mt-2" />
+        <div class="register-wrapper login-wrapper">
+
+            <div class="register-card">
+
+                <div class="form-header">
+                    <img src="{{ asset('assets/imgs/watania.png') }}" alt="الشبكة الوطنية"
+                        class="login-logo">
+                    <h2>تسجيل الدخول</h2>
+                    <p>مرحباً بك في بوابة الشبكة الوطنية الموحدة</p>
+                </div>
+
+                <x-auth-session-status
+                    class="mb-4"
+                    :status="session('status')" />
+
+                <form wire:submit="login" novalidate>
+
+                    <div class="form-grid login-form-grid">
+
+                        {{-- Email --}}
+                        <div class="form-group">
+
+                            <label for="email">
+                                البريد الإلكتروني
+                                <span class="required">*</span>
+                            </label>
+
+                            <div class="input-wrapper">
+                                <i class="fas fa-envelope"></i>
+
+                                <input
+                                    type="email"
+                                    id="email"
+                                    wire:model="form.email"
+                                    placeholder="example@domain.com"
+                                    autocomplete="username"
+                                    required
+                                    autofocus>
+
+                            </div>
+
+                            @error('form.email')
+                                <span class="error-msg">
+                                    {{ $message }}
+                                </span>
+                            @enderror
+
+                        </div>
+
+
+                        {{-- Password --}}
+                        <div class="form-group">
+
+                            <label for="password">
+                                كلمة المرور
+                                <span class="required">*</span>
+                            </label>
+
+                            <div class="input-wrapper">
+
+                                <i class="fas fa-lock"></i>
+
+                                <input
+                                    type="password"
+                                    id="password"
+                                    wire:model="form.password"
+                                    autocomplete="current-password"
+                                    required>
+
+                                <i class="fas fa-eye toggle-password"></i>
+
+                            </div>
+
+                            <div class="password-meta">
+
+                                <label class="checkbox-container remember-me-label">
+
+                                    <input
+                                        type="checkbox"
+                                        wire:model="form.remember">
+
+                                    <span class="checkmark"></span>
+
+                                    <span>تذكرني</span>
+
+                                </label>
+
+                                @if(Route::has('password.request'))
+
+                                    <a
+                                        href="{{ route('password.request') }}"
+                                        wire:navigate
+                                        class="forgot-password-link">
+
+                                        نسيت كلمة المرور؟
+
+                                    </a>
+
+                                @endif
+
+                            </div>
+
+                            @error('form.password')
+                                <span class="error-msg">
+                                    {{ $message }}
+                                </span>
+                            @enderror
+
+                        </div>
+
+                    </div>
+
+                    <button
+                        type="submit"
+                        class="btn-submit"
+                        wire:loading.attr="disabled">
+
+                        <span wire:loading.remove>
+                            تسجيل الدخول
+                        </span>
+
+                        <span wire:loading>
+                            جاري تسجيل الدخول...
+                        </span>
+
+                    </button>
+
+                </form>
+
+            </div>
+
         </div>
 
-        <!-- Password -->
-        <div class="mt-4">
-            <x-input-label for="password" :value="__('Password')" />
+    </main>
 
-            <x-text-input wire:model="form.password" id="password" class="block mt-1 w-full"
-                            type="password"
-                            name="password"
-                            required autocomplete="current-password" />
-
-            <x-input-error :messages="$errors->get('form.password')" class="mt-2" />
-        </div>
-
-        <!-- Remember Me -->
-        <div class="block mt-4">
-            <label for="remember" class="inline-flex items-center">
-                <input wire:model="form.remember" id="remember" type="checkbox" class="rounded border-gray-300 text-indigo-600 shadow-sm focus:ring-indigo-500" name="remember">
-                <span class="ms-2 text-sm text-gray-600">{{ __('Remember me') }}</span>
-            </label>
-        </div>
-
-        <div class="flex items-center justify-end mt-4">
-            @if (Route::has('password.request'))
-                <a class="underline text-sm text-gray-600 hover:text-gray-900 rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500" href="{{ route('password.request') }}" wire:navigate>
-                    {{ __('Forgot your password?') }}
-                </a>
-            @endif
-
-            <x-primary-button class="ms-3">
-                {{ __('Log in') }}
-            </x-primary-button>
-        </div>
-    </form>
 </div>
+    
+
+

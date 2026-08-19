@@ -38,7 +38,7 @@ class RecieveReport extends Model
 
     public function user()
     {
-        return $this->belongsTo(User::class, 'REPORT_RECIPIENT', 'USER_ID');
+        return $this->belongsTo(User::class, 'REPORT_RECIPIENT', 'id');
     }
 
     public function city()
@@ -75,5 +75,10 @@ class RecieveReport extends Model
     {
         return $this->hasMany(ReportAuth::class, 'REPORT_ID', 'ID');
     }
+
+    public function lockedByUser()
+{
+    return $this->belongsTo(\App\Models\User::class, 'LOCKED_BY');
+}
 
 }

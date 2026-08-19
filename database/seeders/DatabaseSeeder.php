@@ -13,13 +13,20 @@ class DatabaseSeeder extends Seeder
     /**
      * Seed the application's database.
      */
-    public function run(): void
-    {
-        // User::factory(10)->create();
+  public function run(): void
+{
+    $this->call([
+        RolesAndPermissionsSeeder::class,
+        EvaluationPermissionSeeder::class,
 
-        User::factory()->create([
-            'name' => 'Test User',
-            'email' => 'test@example.com',
-        ]);
-    }
+    ]);
+
+    // اختياري: تعمل أول Admin مباشرة
+    $admin = User::factory()->create([
+        'name' => 'Admin',
+        'email' => 'admin@admin.com',
+        'password' => bcrypt('password'), // غيّرها بعدين طبعاً
+    ]);
+    $admin->assignRole('مشرف عام');
+}
 }

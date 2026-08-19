@@ -11,8 +11,15 @@ export default {
 
     theme: {
         extend: {
+            colors: {
+                primary: '#001f3f',
+                accent: '#e67e22',
+                'accent-hover': '#d35400',
+                'bg-soft': '#f8fafc',
+            },
             fontFamily: {
                 sans: ['Figtree', ...defaultTheme.fontFamily.sans],
+                cairo: ['Cairo', 'sans-serif'],
             },
         },
     },

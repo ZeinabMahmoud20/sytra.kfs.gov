@@ -19,14 +19,20 @@ class SignalAuth extends Model
         'MAIN_SIGNAL_CODE',
     ];
 
-    public function recieveSignal()
+    /**
+     * الكارت (SIGNAL_UNIT) اللي الحالة دي خاصة بيه.
+     * ملحوظة: SIGNAL_ID هنا بيشاور على SIGNAL_UNIT.ID (مسار الإشارات الجديد)
+     */
+    public function signalUnit()
     {
-        return $this->belongsTo(RecieveSignal::class, 'SIGNAL_ID', 'ID');
+        return $this->belongsTo(SignalUnit::class, 'SIGNAL_ID', 'ID');
     }
 
+    /**
+     * الثريد (MainSignalTBL) اللي الحالة دي تابعة له
+     */
     public function mainSignal()
     {
         return $this->belongsTo(MainSignal::class, 'MAIN_SIGNAL_ID', 'MainSignalID');
     }
-
 }
