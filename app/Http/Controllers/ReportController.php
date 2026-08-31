@@ -127,7 +127,7 @@ class ReportController extends Controller
             'cities' => City::orderBy('CITY_NAME')->get(),
             'villages' => Village::where('CITY_ID', $report->CITY)->orderBy('VILLAGE_NAME')->get(),
             'statuses' => $this->statuses,
-            'notifiedAuthorities' => NotifiedAuth::pluck('Notified_Auth'),
+            'notifiedAuthorities' => NotifiedAuth::orderBy('Notified_Auth')->pluck('Notified_Auth'),
             'selectedAuthorities' => $report->reportAuths()->pluck('AUTHORITY_ID')->toArray(),
         ]);
     }
@@ -147,7 +147,7 @@ class ReportController extends Controller
 
         $validated = $request->validate([
             'REPORTER_NAME' => ['required', 'string', 'max:50'],
-            'REPORT_FOLLOWUP_NUMBER' => ['required', 'regex:/^01[0125][0-9]{8}$/'],
+            'REPORT_FOLLOWUP_NUMBER' => ['required', 'regex:/^(01[0125][0-9]{8}|0[0-9]{9})$/'],
             'REPORTER_SSN' => ['required', 'digits:14', 'regex:/^[23]\d{13}$/'],
             'REPORT_START_DATE' => ['required', 'date'],
             'REPORT_START_TIME' => ['required'],
@@ -165,12 +165,12 @@ class ReportController extends Controller
             'notified_authorities.*' => ['string'],
             'injured' => ['nullable', 'array'],
             'injured.*.name' => ['required_with:injured', 'string', 'max:50'],
-            'injured.*.birth_date' => ['required_with:injured', 'date'],
+            'injured.*.age' => ['required_with:injured', 'integer', 'min:1', 'max:150'],
             'injured.*.diagnosis' => ['nullable', 'string', 'max:500'],
             'injured.*.followup' => ['nullable', 'string'],
             'deceased' => ['nullable', 'array'],
             'deceased.*.name' => ['required_with:deceased', 'string', 'max:50'],
-            'deceased.*.birth_date' => ['required_with:deceased', 'date'],
+            'deceased.*.age' => ['required_with:deceased', 'integer', 'min:1', 'max:150'],
             'deceased.*.address' => ['nullable', 'string'],
             'deceased.*.followup' => ['nullable', 'string'],
         ]);
@@ -233,7 +233,7 @@ class ReportController extends Controller
             foreach ($validated['injured'] ?? [] as $injured) {
                 Injured::create([
                     'INJURED_NAME' => $injured['name'],
-                    'INJURED_AGE' => $injured['birth_date'],
+                    'INJURED_AGE' => $injured['age'],
                     'INJURED_DIAGNOSIS' => $injured['diagnosis'] ?? null,
                     'INJURED_FOLLOWUP' => $injured['followup'] ?? null,
                     'REPORT_ID' => $report->ID,
@@ -245,7 +245,7 @@ class ReportController extends Controller
             foreach ($validated['deceased'] ?? [] as $deceased) {
                 Death::create([
                     'Deceased_NAME' => $deceased['name'],
-                    'Deceased_AGE' => $deceased['birth_date'],
+                    'Deceased_AGE' => $deceased['age'],
                     'Deceased_ADDRESS' => $deceased['address'] ?? null,
                     'Deceased_FOLLOWUP' => $deceased['followup'] ?? null,
                     'REPORT_ID' => $report->ID,
@@ -462,7 +462,7 @@ class ReportController extends Controller
     {
         $validated = $request->validate([
             'REPORTER_NAME' => ['required', 'string', 'max:50'],
-            'REPORT_FOLLOWUP_NUMBER' => ['required', 'regex:/^01[0125][0-9]{8}$/'],
+            'REPORT_FOLLOWUP_NUMBER' => ['required', 'regex:/^(01[0125][0-9]{8}|0[0-9]{9})$/'],
             'REPORTER_SSN' => ['required', 'digits:14', 'regex:/^[23]\d{13}$/'],
             'REPORT_START_DATE' => ['required', 'date'],
             'REPORT_START_TIME' => ['required'],

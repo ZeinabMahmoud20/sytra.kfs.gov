@@ -1,14 +1,8 @@
 @php
-    // كل رابط في القائمة: اسم الـ Route + الأيقونة + العنوان + الصلاحية المطلوبة لظهوره
+    // روابط بسيطة (بدون قائمة منسدلة) بتظهر بشكل مباشر
     // permission = null معناه الرابط ده ظاهر لأي مستخدم مسجل دخول من غير شرط صلاحية
-    $navLinks = [
+    $simpleTopLinks = [
         ['route' => 'dashboard', 'icon' => 'fa-th-large', 'label' => 'الصفحة الرئيسية', 'permission' => null],
-        ['route' => 'reports.create', 'icon' => 'fa-plus-circle', 'label' => 'إضافة بلاغ', 'permission' => 'reports.create'],
-        ['route' => 'signals.create', 'icon' => 'fa-paper-plane', 'label' => 'تسجيل إشارة', 'permission' => 'signals.create'],
-        ['route' => 'tasks.index', 'icon' => 'fa-tasks', 'label' => 'قائمة التممات', 'permission' => 'tmam.view'],
-        ['route' => 'signals.index', 'icon' => 'fa-broadcast-tower', 'label' => 'قائمة الإشارات', 'permission' => 'signals.view'],
-        ['route' => 'reports.index', 'icon' => 'fa-file-alt', 'label' => 'التقارير', 'permission' => 'reports.view'],
-        ['route' => 'profile.settings', 'icon' => 'fa-cog', 'label' => 'الإعدادات', 'permission' => null],
     ];
 @endphp
 
@@ -29,7 +23,9 @@
         </div>
 
         <nav class="flex-1 space-y-2">
-            @foreach ($navLinks as $link)
+
+            {{-- 1) الصفحة الرئيسية --}}
+            @foreach ($simpleTopLinks as $link)
                 @if (is_null($link['permission']) || auth()->user()?->can($link['permission']))
                     @php $isActive = Route::has($link['route']) && request()->routeIs($link['route']); @endphp
                     <a href="{{ Route::has($link['route']) ? route($link['route']) : '#' }}"
@@ -42,6 +38,151 @@
                 @endif
             @endforeach
 
+            {{-- 2) البلاغات (قائمة منسدلة: إضافة بلاغ - تقارير البلاغات) --}}
+            @canany(['reports.create', 'reports.view'])
+                @php
+                    $reportsRoutes = ['reports.create', 'reports.index'];
+                    $isReportsActive = request()->routeIs($reportsRoutes);
+                @endphp
+
+                <div>
+                    <button type="button" onclick="document.getElementById('reports-submenu').classList.toggle('hidden'); this.querySelector('.reports-chevron').classList.toggle('rotate-180')"
+                        class="w-full flex items-center justify-between gap-4 px-4 py-3 rounded-xl transition-all duration-300 group
+                            {{ $isReportsActive ? 'bg-accent text-white shadow-lg' : 'hover:bg-white/10' }}">
+                        <span class="flex items-center gap-4">
+                            <i class="fas fa-file-alt w-6 text-center
+                                {{ $isReportsActive ? '' : 'text-accent group-hover:scale-110 transition-transform' }}"></i>
+                            <span class="font-medium text-lg">البلاغات</span>
+                        </span>
+                        <i class="fas fa-chevron-down text-sm reports-chevron transition-transform duration-300 {{ $isReportsActive ? 'rotate-180' : '' }}"></i>
+                    </button>
+
+                    <div id="reports-submenu" class="{{ $isReportsActive ? '' : 'hidden' }} mt-1 mr-4 space-y-1 border-r-2 border-white/10 pr-4">
+                        @can('reports.create')
+                            <a href="{{ route('reports.create') }}"
+                                class="flex items-center gap-3 px-4 py-2 rounded-lg transition-all duration-300 text-sm
+                                    {{ request()->routeIs('reports.create') ? 'bg-white/15 text-white font-bold' : 'hover:bg-white/10 text-white/80' }}">
+                                <i class="fas fa-plus-circle w-5 text-center text-accent"></i>
+                                إضافة بلاغ
+                            </a>
+                        @endcan
+
+                        @can('reports.view')
+                            <a href="{{ route('reports.index') }}"
+                                class="flex items-center gap-3 px-4 py-2 rounded-lg transition-all duration-300 text-sm
+                                    {{ request()->routeIs('reports.index') ? 'bg-white/15 text-white font-bold' : 'hover:bg-white/10 text-white/80' }}">
+                                <i class="fas fa-file-alt w-5 text-center text-accent"></i>
+                                تقارير البلاغات
+                            </a>
+                        @endcan
+                    </div>
+                </div>
+            @endcanany
+
+            {{-- 3) الإشارات (قائمة منسدلة: الإشارات - قائمة الإشارات) --}}
+            @canany(['signals.create', 'signals.view'])
+                @php
+                    $signalsRoutes = ['signals.create', 'signals.index'];
+                    $isSignalsActive = request()->routeIs($signalsRoutes);
+                @endphp
+
+                <div>
+                    <button type="button" onclick="document.getElementById('signals-submenu').classList.toggle('hidden'); this.querySelector('.signals-chevron').classList.toggle('rotate-180')"
+                        class="w-full flex items-center justify-between gap-4 px-4 py-3 rounded-xl transition-all duration-300 group
+                            {{ $isSignalsActive ? 'bg-accent text-white shadow-lg' : 'hover:bg-white/10' }}">
+                        <span class="flex items-center gap-4">
+                            <i class="fas fa-broadcast-tower w-6 text-center
+                                {{ $isSignalsActive ? '' : 'text-accent group-hover:scale-110 transition-transform' }}"></i>
+                            <span class="font-medium text-lg">الإشارات</span>
+                        </span>
+                        <i class="fas fa-chevron-down text-sm signals-chevron transition-transform duration-300 {{ $isSignalsActive ? 'rotate-180' : '' }}"></i>
+                    </button>
+
+                    <div id="signals-submenu" class="{{ $isSignalsActive ? '' : 'hidden' }} mt-1 mr-4 space-y-1 border-r-2 border-white/10 pr-4">
+                        @can('signals.create')
+                            <a href="{{ route('signals.create') }}"
+                                class="flex items-center gap-3 px-4 py-2 rounded-lg transition-all duration-300 text-sm
+                                    {{ request()->routeIs('signals.create') ? 'bg-white/15 text-white font-bold' : 'hover:bg-white/10 text-white/80' }}">
+                                <i class="fas fa-paper-plane w-5 text-center text-accent"></i>
+                                تسجيل إشارة  
+                            </a>
+                        @endcan
+
+                        @can('signals.view')
+                            <a href="{{ route('signals.index') }}"
+                                class="flex items-center gap-3 px-4 py-2 rounded-lg transition-all duration-300 text-sm
+                                    {{ request()->routeIs('signals.index') ? 'bg-white/15 text-white font-bold' : 'hover:bg-white/10 text-white/80' }}">
+                                <i class="fas fa-broadcast-tower w-5 text-center text-accent"></i>
+                                قائمة الإشارات
+                            </a>
+                        @endcan
+                    </div>
+                </div>
+            @endcanany
+
+            {{-- 4) متابعة التكليفات --}}
+            @canany(['tasks.create', 'tasks.view'])
+                @php
+                    $tasksRoutes = [
+                        'tasks.create', 'tasks.index', 'tasks.show', 'tasks.edit',
+                        'task-sources.*', 'task-entities.*',
+                    ];
+                    $isTasksActive = request()->routeIs($tasksRoutes);
+                @endphp
+
+                <div>
+                    <button type="button" onclick="document.getElementById('tasks-submenu').classList.toggle('hidden'); this.querySelector('.tasks-chevron').classList.toggle('rotate-180')"
+                        class="w-full flex items-center justify-between gap-4 px-4 py-3 rounded-xl transition-all duration-300 group
+                            {{ $isTasksActive ? 'bg-accent text-white shadow-lg' : 'hover:bg-white/10' }}">
+                        <span class="flex items-center gap-4">
+                            <i class="fas fa-tasks w-6 text-center
+                                {{ $isTasksActive ? '' : 'text-accent group-hover:scale-110 transition-transform' }}"></i>
+                            <span class="font-medium text-lg">متابعة التكليفات</span>
+                        </span>
+                        <i class="fas fa-chevron-down text-sm tasks-chevron transition-transform duration-300 {{ $isTasksActive ? 'rotate-180' : '' }}"></i>
+                    </button>
+
+                    <div id="tasks-submenu" class="{{ $isTasksActive ? '' : 'hidden' }} mt-1 mr-4 space-y-1 border-r-2 border-white/10 pr-4">
+                        @can('tasks.create')
+                            <a href="{{ route('tasks.create') }}"
+                                class="flex items-center gap-3 px-4 py-2 rounded-lg transition-all duration-300 text-sm
+                                    {{ request()->routeIs('tasks.create') ? 'bg-white/15 text-white font-bold' : 'hover:bg-white/10 text-white/80' }}">
+                                <i class="fas fa-plus-circle w-5 text-center text-accent"></i>
+                                تسجيل تكليف جديد
+                            </a>
+                        @endcan
+
+                        @can('tasks.view')
+                            <a href="{{ route('tasks.index') }}"
+                                class="flex items-center gap-3 px-4 py-2 rounded-lg transition-all duration-300 text-sm
+                                    {{ request()->routeIs('tasks.index') ? 'bg-white/15 text-white font-bold' : 'hover:bg-white/10 text-white/80' }}">
+                                <i class="fas fa-list-check w-5 text-center text-accent"></i>
+                                قائمة التكليفات
+                            </a>
+                        @endcan
+
+                        @can('tasks.view')
+                            <a href="{{ route('task-sources.index') }}"
+                                class="flex items-center gap-3 px-4 py-2 rounded-lg transition-all duration-300 text-sm
+                                    {{ request()->routeIs('task-sources.*') ? 'bg-white/15 text-white font-bold' : 'hover:bg-white/10 text-white/80' }}">
+                                <i class="fas fa-share-nodes w-5 text-center text-accent"></i>
+                                مصادر التكليف
+                            </a>
+                        @endcan
+
+                        @can('tasks.view')
+                            <a href="{{ route('task-entities.index') }}"
+                                class="flex items-center gap-3 px-4 py-2 rounded-lg transition-all duration-300 text-sm
+                                    {{ request()->routeIs('task-entities.*') ? 'bg-white/15 text-white font-bold' : 'hover:bg-white/10 text-white/80' }}">
+                                <i class="fas fa-building w-5 text-center text-accent"></i>
+                                الجهات التعامل
+                            </a>
+                        @endcan
+                    </div>
+                </div>
+            @endcanany
+
+            {{-- 5) التمامات - زي ما هي من غير تعديل --}}
             @can('tmam.view')
                 @php
                     $tmamRoutes = ['daily-attendances.index', 'daily-attendances.show', 'attendance-templates.*', 'entities.*', 'entity-attendance-dashboard'];
@@ -92,7 +233,8 @@
                 </div>
             @endcan
 
-            @canany(['evaluate-entities', 'manage-evaluation-entities', 'view-evaluation-dashboard'])
+            {{-- 6) تقييم الجهات - زي ما هي من غير تعديل --}}
+            @canany(['evaluations.evaluate', 'evaluations.manage', 'evaluations.dashboard'])
                 @php
                     $evalRoutes = ['evaluations.entities', 'evaluations.daily', 'evaluations.dashboard'];
                     $isEvalActive = request()->routeIs($evalRoutes);
@@ -111,7 +253,7 @@
                     </button>
 
                     <div id="eval-submenu" class="{{ $isEvalActive ? '' : 'hidden' }} mt-1 mr-4 space-y-1 border-r-2 border-white/10 pr-4">
-                        @can('manage-evaluation-entities')
+                        @can('evaluations.manage')
                             <a href="{{ route('evaluations.entities') }}"
                                 class="flex items-center gap-3 px-4 py-2 rounded-lg transition-all duration-300 text-sm
                             {{ request()->routeIs('evaluations.entities') ? 'bg-white/15 text-white font-bold' : 'hover:bg-white/10 text-white/80' }}">
@@ -120,7 +262,7 @@
                             </a>
                         @endcan
 
-                        @can('evaluate-entities')
+                        @can('evaluations.evaluate')
                             <a href="{{ route('evaluations.daily') }}"
                                 class="flex items-center gap-3 px-4 py-2 rounded-lg transition-all duration-300 text-sm
                             {{ request()->routeIs('evaluations.daily') ? 'bg-white/15 text-white font-bold' : 'hover:bg-white/10 text-white/80' }}">
@@ -129,7 +271,7 @@
                             </a>
                         @endcan
 
-                        @can('view-evaluation-dashboard')
+                        @can('evaluations.dashboard')
                             <a href="{{ route('evaluations.dashboard') }}"
                                 class="flex items-center gap-3 px-4 py-2 rounded-lg transition-all duration-300 text-sm
                             {{ request()->routeIs('evaluations.dashboard') ? 'bg-white/15 text-white font-bold' : 'hover:bg-white/10 text-white/80' }}">
@@ -141,37 +283,70 @@
                 </div>
             @endcanany
 
-            @can('users.manage')
-                <a href="{{ route('admin.users.index') }}"
-                    class="flex items-center gap-4 px-4 py-3 rounded-xl transition-all duration-300 group
-                        {{ request()->routeIs('admin.users.*') ? 'bg-accent text-white shadow-lg' : 'hover:bg-white/10' }}">
-                    <i class="fas fa-users w-6 text-center {{ request()->routeIs('admin.users.*') ? '' : 'text-accent group-hover:scale-110 transition-transform' }}"></i>
-                    <span class="font-medium text-lg">إدارة المستخدمين</span>
-                </a>
-            @endcan
+            {{-- 7) إدارة المستخدمين (قائمة منسدلة تجمع: إدارة المستخدمين - الأدوار والصلاحيات - إدارة الصلاحيات - صلاحيات مباشرة للموظفين) --}}
+            @canany(['users.manage', 'roles.manage'])
+                @php
+                    $usersMgmtRoutes = ['admin.users.*', 'admin.roles.*', 'admin.permissions.*', 'admin.user-permissions.*'];
+                    $isUsersMgmtActive = request()->routeIs($usersMgmtRoutes);
+                @endphp
 
-            @can('roles.manage')
-                <a href="{{ route('admin.roles.index') }}"
-                    class="flex items-center gap-4 px-4 py-3 rounded-xl transition-all duration-300 group
-                        {{ request()->routeIs('admin.roles.*') ? 'bg-accent text-white shadow-lg' : 'hover:bg-white/10' }}">
-                    <i class="fas fa-user-shield w-6 text-center {{ request()->routeIs('admin.roles.*') ? '' : 'text-accent group-hover:scale-110 transition-transform' }}"></i>
-                    <span class="font-medium text-lg">الأدوار والصلاحيات</span>
-                </a>
+                <div>
+                    <button type="button" onclick="document.getElementById('users-mgmt-submenu').classList.toggle('hidden'); this.querySelector('.users-mgmt-chevron').classList.toggle('rotate-180')"
+                        class="w-full flex items-center justify-between gap-4 px-4 py-3 rounded-xl transition-all duration-300 group
+                            {{ $isUsersMgmtActive ? 'bg-accent text-white shadow-lg' : 'hover:bg-white/10' }}">
+                        <span class="flex items-center gap-4">
+                            <i class="fas fa-users w-6 text-center
+                                {{ $isUsersMgmtActive ? '' : 'text-accent group-hover:scale-110 transition-transform' }}"></i>
+                            <span class="font-medium text-lg">إدارة المستخدمين</span>
+                        </span>
+                        <i class="fas fa-chevron-down text-sm users-mgmt-chevron transition-transform duration-300 {{ $isUsersMgmtActive ? 'rotate-180' : '' }}"></i>
+                    </button>
 
-                <a href="{{ route('admin.permissions.index') }}"
-                    class="flex items-center gap-4 px-4 py-3 rounded-xl transition-all duration-300 group
-                        {{ request()->routeIs('admin.permissions.*') ? 'bg-accent text-white shadow-lg' : 'hover:bg-white/10' }}">
-                    <i class="fas fa-key w-6 text-center {{ request()->routeIs('admin.permissions.*') ? '' : 'text-accent group-hover:scale-110 transition-transform' }}"></i>
-                    <span class="font-medium text-lg">إدارة الصلاحيات</span>
-                </a>
+                    <div id="users-mgmt-submenu" class="{{ $isUsersMgmtActive ? '' : 'hidden' }} mt-1 mr-4 space-y-1 border-r-2 border-white/10 pr-4">
+                        @can('users.manage')
+                            <a href="{{ route('admin.users.index') }}"
+                                class="flex items-center gap-3 px-4 py-2 rounded-lg transition-all duration-300 text-sm
+                                    {{ request()->routeIs('admin.users.*') ? 'bg-white/15 text-white font-bold' : 'hover:bg-white/10 text-white/80' }}">
+                                <i class="fas fa-users w-5 text-center text-accent"></i>
+                                إدارة المستخدمين
+                            </a>
+                        @endcan
 
-                <a href="{{ route('admin.user-permissions.index') }}"
-                    class="flex items-center gap-4 px-4 py-3 rounded-xl transition-all duration-300 group
-                        {{ request()->routeIs('admin.user-permissions.*') ? 'bg-accent text-white shadow-lg' : 'hover:bg-white/10' }}">
-                    <i class="fas fa-user-lock w-6 text-center {{ request()->routeIs('admin.user-permissions.*') ? '' : 'text-accent group-hover:scale-110 transition-transform' }}"></i>
-                    <span class="font-medium text-lg">صلاحيات مباشرة للموظفين</span>
-                </a>
-            @endcan
+                        @can('roles.manage')
+                            <a href="{{ route('admin.roles.index') }}"
+                                class="flex items-center gap-3 px-4 py-2 rounded-lg transition-all duration-300 text-sm
+                                    {{ request()->routeIs('admin.roles.*') ? 'bg-white/15 text-white font-bold' : 'hover:bg-white/10 text-white/80' }}">
+                                <i class="fas fa-user-shield w-5 text-center text-accent"></i>
+                                الأدوار والصلاحيات
+                            </a>
+
+                            <a href="{{ route('admin.permissions.index') }}"
+                                class="flex items-center gap-3 px-4 py-2 rounded-lg transition-all duration-300 text-sm
+                                    {{ request()->routeIs('admin.permissions.*') ? 'bg-white/15 text-white font-bold' : 'hover:bg-white/10 text-white/80' }}">
+                                <i class="fas fa-key w-5 text-center text-accent"></i>
+                                إدارة الصلاحيات
+                            </a>
+
+                            <a href="{{ route('admin.user-permissions.index') }}"
+                                class="flex items-center gap-3 px-4 py-2 rounded-lg transition-all duration-300 text-sm
+                                    {{ request()->routeIs('admin.user-permissions.*') ? 'bg-white/15 text-white font-bold' : 'hover:bg-white/10 text-white/80' }}">
+                                <i class="fas fa-user-lock w-5 text-center text-accent"></i>
+                                صلاحيات مباشرة للموظفين
+                            </a>
+                        @endcan
+                    </div>
+                </div>
+            @endcanany
+
+            {{-- 8) الإعدادات --}}
+            <a href="{{ Route::has('profile.settings') ? route('profile.settings') : '#' }}"
+                class="flex items-center gap-4 px-4 py-3 rounded-xl transition-all duration-300 group
+                    {{ request()->routeIs('profile.settings') ? 'bg-accent text-white shadow-lg' : 'hover:bg-white/10' }}">
+                <i class="fas fa-cog w-6 text-center
+                    {{ request()->routeIs('profile.settings') ? '' : 'text-accent group-hover:scale-110 transition-transform' }}"></i>
+                <span class="font-medium text-lg">الإعدادات</span>
+            </a>
+
         </nav>
 
         <div class="mt-auto border-t border-white/10 pt-6">

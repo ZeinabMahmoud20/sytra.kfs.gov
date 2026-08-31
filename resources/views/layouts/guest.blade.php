@@ -7,7 +7,7 @@
 
     <title>{{ config('app.name') }}</title>
 
-    <link rel="icon" href="{{ asset('favicon.ico') }}">
+    <link rel="icon" type="image/png" href="{{ asset('assets/imgs/watania2.png') }}">
 
     <!-- Font Awesome -->
     <link rel="stylesheet"

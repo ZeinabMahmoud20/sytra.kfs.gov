@@ -7,7 +7,7 @@
 
     <title>{{ config('app.name', 'الشبكة الوطنية الموحدة') }}</title>
 
-    <link rel="icon" href="{{ asset('favicon.ico') }}">
+    <link rel="icon" type="image/png" href="{{ asset('assets/imgs/watania2.png') }}">
 
     <!-- Font Awesome -->
     <link rel="stylesheet"

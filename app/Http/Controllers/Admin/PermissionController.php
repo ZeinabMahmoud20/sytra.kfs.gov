@@ -22,9 +22,9 @@ class PermissionController extends Controller
     public function store(Request $request)
     {
         $validated = $request->validate([
-            'name' => ['required', 'string', 'max:150', 'unique:permissions,name', 'regex:/^[a-z_]+\.[a-z_]+$/'],
+            'name' => ['required', 'string', 'max:150', 'unique:permissions,name', 'regex:/^[a-z_-]+\.[a-z_-]+$/'],
         ], [
-            'name.regex' => 'صيغة الصلاحية لازم تكون بالشكل: module.action مثل reports.approve (حروف إنجليزية صغيرة ونقطة واحدة فقط).',
+            'name.regex' => 'صيغة الصلاحية لازم تكون بالشكل: module.action مثل reports.approve (حروف صغيرة، underscore، أو شرطة، ومفصولة بنقطة).',
         ]);
 
         $permission = Permission::create(['name' => $validated['name'], 'guard_name' => 'web']);

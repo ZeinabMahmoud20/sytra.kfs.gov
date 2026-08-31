@@ -8,7 +8,7 @@
 
     <title>الشبكة الوطنية للطوارئ - محافظة كفر الشيخ</title>
 
-    <link rel="icon" href="{{ asset('favicon.ico') }}">
+    <link rel="icon" type="image/png" href="{{ asset('assets/imgs/watania2.png') }}">
 
     <link rel="stylesheet"
           href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">

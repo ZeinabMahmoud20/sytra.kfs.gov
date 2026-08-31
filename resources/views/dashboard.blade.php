@@ -29,7 +29,7 @@
             <i class="fas fa-exclamation-triangle"></i>
         </div>
         <div>
-            <p class="text-slate-400 font-bold mb-1">حوادث جارية</p>
+            <p class="text-slate-400 font-bold mb-1">بلاغات جارية</p>
             <h4 class="text-2xl font-black text-primary">{{ $activeIncidents ?? 0 }}</h4>
         </div>
     </div>
@@ -44,17 +44,7 @@
             <h4 class="text-2xl font-black text-primary">{{ $todaySignals ?? 0 }}</h4>
         </div>
     </div>
-    <div
-        class="bg-white p-6 rounded-3xl shadow-sm border-2 border-slate-100 hover:border-accent hover:shadow-none transition-all cursor-pointer flex items-center gap-5 stat-card">
-        <div
-            class="w-16 h-16 rounded-2xl bg-green-50 text-green-600 flex items-center justify-center text-3xl shadow-sm">
-            <i class="fas fa-check-circle"></i>
-        </div>
-        <div>
-            <p class="text-slate-400 font-bold mb-1">تممات منفذة</p>
-            <h4 class="text-xl font-black text-primary">{{ $tmamCompletionRate ?? 0 }}%</h4>
-        </div>
-    </div>
+
 </div>
 
 <div class="flex flex-col gap-10">

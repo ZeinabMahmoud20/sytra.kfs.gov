@@ -17,14 +17,14 @@ class EvaluationPermissionSeeder extends Seeder
      * php artisan db:seed --class=EvaluationPermissionSeeder
      *
      * بعد كده هتدي الصلاحيات للاتنين المسئولين عن التقييم بس، مثلاً:
-     * $user->givePermissionTo(['evaluate-entities', 'view-evaluation-dashboard']);
+     * $user->givePermissionTo(['evaluations.evaluate', 'evaluations.dashboard']);
      */
     public function run(): void
     {
         $permissions = [
-            Permission::firstOrCreate(['name' => 'evaluate-entities']),         // تسجيل تقييم يومي
-            Permission::firstOrCreate(['name' => 'manage-evaluation-entities']), // CRUD الجهات
-            Permission::firstOrCreate(['name' => 'view-evaluation-dashboard']),  // مشاهدة الداشبورد
+            Permission::firstOrCreate(['name' => 'evaluations.evaluate']),    // تسجيل تقييم يومي
+            Permission::firstOrCreate(['name' => 'evaluations.manage']),       // CRUD الجهات
+            Permission::firstOrCreate(['name' => 'evaluations.dashboard']),    // مشاهدة الداشبورد
         ];
 
         // ديها تلقائيًا لـ role "مشرف عام" لو موجود، بدل ما تدخلي على كل مستخدم لوحده

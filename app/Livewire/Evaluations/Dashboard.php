@@ -16,14 +16,14 @@ class Dashboard extends Component
 
     public function mount(): void
     {
-        $this->authorize('view-evaluation-dashboard');
+        $this->authorize('evaluations.dashboard');
         $this->year  = (int) now()->year;
         $this->month = (int) now()->subMonthNoOverflow()->month; // افتراضيًا آخر شهر مكتمل
     }
 
     public function recalculate(): void
     {
-        $this->authorize('manage-evaluation-entities'); // أو صلاحية أدق زي recalculate-evaluations
+        $this->authorize('evaluations.manage'); // أو صلاحية أدق زي recalculate-evaluations
 
         Artisan::call(CalculateMonthlyEvaluations::class, [
             '--year'  => $this->year,

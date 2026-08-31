@@ -12,11 +12,8 @@ return [
         'authorities' => 'الجهات',
         'cities' => 'المدن',
         'villages' => 'القرى',
-                'evaluate-entities' => 'تقييم الجهات',
-        'manage-evaluation-entities' => 'إدارة تقييم الجهات',
-        
         'tmam' => 'تمام',
-        'view-evaluation-dashboard' => 'عرض لوحة تقييم الجهات',
+        'evaluations' => 'تقييم الجهات',        
         // ضيف هنا أي module جديد يظهر عندك
     ],
 
@@ -36,6 +33,8 @@ return [
         'export' => 'تصدير',
         'assign' => 'إسناد',
         'manage' => 'إدارة',
+        'evaluate' => 'تقييم',
+        'dashboard'=> 'لوحة تحكم',
 
         // ضيف هنا أي action جديد يظهر عندك
     ],

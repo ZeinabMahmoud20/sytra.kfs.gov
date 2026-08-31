@@ -32,8 +32,7 @@ new #[Layout('layouts.guest')] class extends Component
             <div class="register-card">
 
                 <div class="form-header">
-                    <img src="{{ asset('assets/imgs/watania.png') }}" alt="الشبكة الوطنية"
-                        class="login-logo">
+
                     <h2>تسجيل الدخول</h2>
                     <p>مرحباً بك في بوابة الشبكة الوطنية الموحدة</p>
                 </div>

@@ -37,6 +37,11 @@ $permissions = [
     'tmam.delete',
     'tmam.import',   // <-- جديد: رفع الجهات من Excel
 
+        'tasks.view',
+    'tasks.create',
+    'tasks.edit',
+    'tasks.delete',
+
     // إدارة النظام
     'users.manage',
     'roles.manage',
@@ -85,5 +90,7 @@ $permissions = [
             'signals.view',
             'tmam.view',
         ]);
+
+        
     }
 }

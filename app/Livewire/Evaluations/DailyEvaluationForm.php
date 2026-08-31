@@ -20,7 +20,7 @@ class DailyEvaluationForm extends Component
 
     public function mount(): void
     {
-        $this->authorize('evaluate-entities');
+        $this->authorize('evaluations.evaluate');
         $this->date = now()->toDateString();
         $this->loadDay();
     }
@@ -46,7 +46,7 @@ class DailyEvaluationForm extends Component
 
     public function save(int $entityId, string $responseType): void
     {
-        $this->authorize('evaluate-entities');
+        $this->authorize('evaluations.evaluate');
 
         if ($this->isFriday) {
             $this->addError('date', 'مفيش تقييم يوم الجمعة');

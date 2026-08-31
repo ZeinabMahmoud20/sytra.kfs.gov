@@ -33,7 +33,7 @@ class EntityManager extends Component
 
     public function mount(): void
     {
-        $this->authorize('manage-evaluation-entities');
+        $this->authorize('evaluations.manage');
     }
 
     public function create(): void
@@ -56,7 +56,7 @@ class EntityManager extends Component
 
     public function save(): void
     {
-        $this->authorize('manage-evaluation-entities');
+        $this->authorize('evaluations.manage');
         $validated = $this->validate();
 
         EvaluationEntity::updateOrCreate(
@@ -72,7 +72,7 @@ class EntityManager extends Component
 
     public function delete(int $id): void
     {
-        $this->authorize('manage-evaluation-entities');
+        $this->authorize('evaluations.manage');
 
         EvaluationEntity::findOrFail($id)->delete();
 

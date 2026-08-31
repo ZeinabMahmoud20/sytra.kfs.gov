@@ -18,7 +18,7 @@ class DashboardController extends Controller
         // موجودة، تقدر تشيل الشرط ده وتسيب الكويري مباشرة.
 
         $totalReports = Schema::hasTable('RECIEVE_REPORT')
-            ? RecieveReport::whereDate('REPORT_START_DATE', today())->count()
+            ? RecieveReport::count()
             : 0;
 
         $activeIncidents = Schema::hasTable('RECIEVE_REPORT')

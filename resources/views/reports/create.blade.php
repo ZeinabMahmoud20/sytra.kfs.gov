@@ -35,22 +35,31 @@
                 <h4 class="font-black text-primary border-r-4 border-accent pr-3">بيانات مقدم البلاغ</h4>
                 <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                     <div class="space-y-2">
-                        <label class="block text-sm font-bold text-slate-500">مقدم البلاغ <span
+                        <label class="block text-sm font-bold text-slate-500 mb-3">مقدم البلاغ <span
                                 class="text-red-500">*</span></label>
                         <input type="text" name="REPORTER_NAME" placeholder="الاسم رباعي"
                             value="{{ old('REPORTER_NAME') }}" required
                             class="w-full px-4 py-3 rounded-xl border border-slate-200 bg-white focus:ring-2 focus:ring-accent/20 focus:border-accent outline-none transition-all">
                     </div>
                     <div class="space-y-2">
-                        <label class="block text-sm font-bold text-slate-500">رقم الهاتف <span
-                                class="text-red-500">*</span></label>
-                        <input type="tel" name="REPORT_FOLLOWUP_NUMBER" placeholder="01xxxxxxxxx" required
-                            value="{{ old('REPORT_FOLLOWUP_NUMBER') }}" pattern="^01[0125][0-9]{8}$" maxlength="11"
+                        <div class="flex items-center justify-between">
+                            <label class="block text-sm font-bold text-slate-500">رقم الهاتف المحمول <span
+                                    class="text-red-500">*</span></label>
+                            <button type="button" id="phone-toggle"
+                                class="relative inline-flex h-8 w-14 items-center rounded-full bg-slate-300 transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-accent/20">
+                                <span id="phone-toggle-dot"
+                                    class="inline-block h-6 w-6 transform rounded-full bg-white shadow transition-transform duration-200 translate-x-1"></span>
+                            </button>
+                        </div>
+                        <input type="hidden" name="phone_type" id="phone-type-hidden" value="mobile">
+                        <input type="tel" name="REPORT_FOLLOWUP_NUMBER" id="phone-input"
+                            placeholder="01xxxxxxxxx" required
+                            value="{{ old('REPORT_FOLLOWUP_NUMBER') }}" maxlength="11"
                             inputmode="numeric"
                             class="w-full px-4 py-3 rounded-xl border border-slate-200 bg-white focus:ring-2 focus:ring-accent/20 focus:border-accent outline-none transition-all">
                     </div>
                     <div class="space-y-2">
-                        <label class="block text-sm font-bold text-slate-500">الرقم القومي <span
+                        <label class="block text-sm font-bold text-slate-500 mb-3">الرقم القومي <span
                                 class="text-red-500">*</span></label>
                         <input type="text" name="REPORTER_SSN" placeholder="أدخل الرقم القومي (14 رقمًا)" required
                             value="{{ old('REPORTER_SSN') }}" maxlength="14" pattern="[0-9]{14}" inputmode="numeric"
@@ -193,20 +202,19 @@
                 <div id="deceased-rows" class="space-y-4"></div>
             </div>
 
-            {{-- الجهات المخطرة - ديناميكي من NotifiedAuthTBL --}}
+            {{-- الجهات المخطرة --}}
             <div class="p-6 bg-orange-50 rounded-2xl border border-orange-100 space-y-6">
                 <h4 class="font-black text-primary border-r-4 border-accent pr-3">توجيه الجهات المعنية</h4>
+
                 <input type="text" id="authorities-search" placeholder="بحث في الجهات..."
                     class="w-full px-4 py-2 rounded-lg border border-slate-200 bg-white text-sm mb-2">
                 <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 max-h-52 overflow-y-auto p-1" id="notified-authorities-list">
                     @foreach ($notifiedAuthorities as $authority)
-                    <label
-                        class="authority-item flex items-center gap-2 cursor-pointer bg-white px-4 py-2 rounded-lg border border-slate-200 hover:border-accent group">
+                    <label class="authority-item flex items-center gap-2 cursor-pointer bg-white px-4 py-2 rounded-lg border border-slate-200 hover:border-accent group">
                         <input type="checkbox" name="notified_authorities[]" value="{{ $authority }}"
-                            class="w-5 h-5 accent-accent" @checked(in_array($authority, old('notified_authorities',
-                            [])))>
-                        <span
-                            class="font-bold group-hover:text-accent transition-colors authority-name">{{ $authority }}</span>
+                            class="w-5 h-5 accent-accent"
+                            @checked(in_array($authority, old('notified_authorities', [])))>
+                        <span class="font-bold group-hover:text-accent transition-colors authority-name">{{ $authority }}</span>
                     </label>
                     @endforeach
                 </div>
@@ -270,6 +278,39 @@
 
 @push('scripts')
 <script>
+    // ------------------------------------------------------------------
+    // 0. رقم الهاتف: موبايل / أرضي (toggle button)
+    // ------------------------------------------------------------------
+    const phoneInput = document.getElementById('phone-input');
+    const phoneToggle = document.getElementById('phone-toggle');
+    const phoneToggleDot = document.getElementById('phone-toggle-dot');
+    const phoneTypeHidden = document.getElementById('phone-type-hidden');
+    let isMobile = phoneTypeHidden.value === 'mobile';
+
+    function updatePhoneValidation() {
+        if (isMobile) {
+            phoneInput.maxLength = 11;
+            phoneInput.placeholder = '01xxxxxxxxx';
+            phoneToggleDot.style.transform = 'translateX(1.5rem)';
+            phoneToggle.classList.remove('bg-slate-300');
+            phoneToggle.classList.add('bg-accent');
+            phoneTypeHidden.value = 'mobile';
+        } else {
+            phoneInput.maxLength = 10;
+            phoneInput.placeholder = '0xxxxxxxxx';
+            phoneToggleDot.style.transform = 'translateX(0.125rem)';
+            phoneToggle.classList.remove('bg-accent');
+            phoneToggle.classList.add('bg-slate-300');
+            phoneTypeHidden.value = 'landline';
+        }
+    }
+
+    phoneToggle.addEventListener('click', function () {
+        isMobile = !isMobile;
+        updatePhoneValidation();
+    });
+    updatePhoneValidation();
+
     // ------------------------------------------------------------------
     // 1. جهة البلاغ -> تحميل أنواع البلاغات المرتبطة بيها
     // ------------------------------------------------------------------

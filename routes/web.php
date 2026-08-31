@@ -12,6 +12,10 @@ use App\Http\Controllers\EntityAttendanceDashboardController;
 use App\Http\Controllers\EntityController;
 use App\Http\Controllers\ReportController;
 use App\Http\Controllers\SignalController;
+use App\Http\Controllers\TaskAssignmentController;
+use App\Http\Controllers\TaskEntityController;
+use App\Http\Controllers\TaskNotificationController;
+use App\Http\Controllers\TaskSourceController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
@@ -172,6 +176,52 @@ Route::middleware('can:tmam.view')->group(function () {
         Route::middleware(['permission:users.manage'])->group(function () {
             Route::resource('users', UserController::class)->except(['show']);
         });
+    });
+});
+
+
+
+Route::middleware(['auth'])->group(function () {
+
+    Route::resource('tasks', TaskAssignmentController::class)
+        ->parameters(['tasks' => 'task']);
+
+    Route::prefix('notifications')->name('task-notifications.')->group(function () {
+        Route::get('/recent', [TaskNotificationController::class, 'recent'])->name('recent');
+        Route::get('/{id}/open', [TaskNotificationController::class, 'open'])->name('open');
+        Route::post('/mark-all-read', [TaskNotificationController::class, 'markAllRead'])->name('mark-all-read');
+    });
+
+    // مصادر التكليف
+    Route::middleware('can:tasks.view')->group(function () {
+        Route::get('task-sources', [TaskSourceController::class, 'index'])->name('task-sources.index');
+    });
+    Route::middleware('can:tasks.create')->group(function () {
+        Route::get('task-sources/create', [TaskSourceController::class, 'create'])->name('task-sources.create');
+        Route::post('task-sources', [TaskSourceController::class, 'store'])->name('task-sources.store');
+    });
+    Route::middleware('can:tasks.edit')->group(function () {
+        Route::get('task-sources/{taskSource}/edit', [TaskSourceController::class, 'edit'])->name('task-sources.edit');
+        Route::put('task-sources/{taskSource}', [TaskSourceController::class, 'update'])->name('task-sources.update');
+    });
+    Route::middleware('can:tasks.delete')->group(function () {
+        Route::delete('task-sources/{taskSource}', [TaskSourceController::class, 'destroy'])->name('task-sources.destroy');
+    });
+
+    // الجهات المختصة للتعامل
+    Route::middleware('can:tasks.view')->group(function () {
+        Route::get('task-entities', [TaskEntityController::class, 'index'])->name('task-entities.index');
+    });
+    Route::middleware('can:tasks.create')->group(function () {
+        Route::get('task-entities/create', [TaskEntityController::class, 'create'])->name('task-entities.create');
+        Route::post('task-entities', [TaskEntityController::class, 'store'])->name('task-entities.store');
+    });
+    Route::middleware('can:tasks.edit')->group(function () {
+        Route::get('task-entities/{taskEntity}/edit', [TaskEntityController::class, 'edit'])->name('task-entities.edit');
+        Route::put('task-entities/{taskEntity}', [TaskEntityController::class, 'update'])->name('task-entities.update');
+    });
+    Route::middleware('can:tasks.delete')->group(function () {
+        Route::delete('task-entities/{taskEntity}', [TaskEntityController::class, 'destroy'])->name('task-entities.destroy');
     });
 });
 
