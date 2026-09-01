@@ -20,8 +20,15 @@
             </div>
         </div>
 
+        <button type="button" id="dashboard-theme-toggle"
+            class="theme-toggle w-10 h-10 flex items-center justify-center text-slate-500 hover:bg-slate-100 rounded-full transition-colors"
+            title="تبديل المظهر">
+            <i class="fas fa-moon"></i>
+        </button>
+
         <div class="relative" id="user-dropdown-wrapper">
             <button id="user-dropdown-btn"
+                onclick="var dd=document.getElementById('user-dropdown');if(dd){dd.classList.toggle('hidden');}"
                 class="flex items-center gap-3 pl-4 pr-2 py-2 rounded-2xl hover:bg-slate-50 transition-all border border-transparent hover:border-slate-200 group">
                 <div class="hidden sm:flex flex-col text-right">
                     <span class="text-sm font-bold text-primary leading-tight">{{ $currentUser?->name }}</span>

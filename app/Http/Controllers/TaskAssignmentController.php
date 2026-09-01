@@ -163,7 +163,7 @@ class TaskAssignmentController extends Controller
             $task->notifyAssignee();
         }
 
-        return redirect()->route('tasks.show', $task)
+        return redirect()->route('tasks.index')
             ->with('success', 'تم تحديث بيانات التكليف بنجاح.');
     }
 

@@ -13,6 +13,7 @@ use App\Http\Controllers\EntityController;
 use App\Http\Controllers\ReportController;
 use App\Http\Controllers\SignalController;
 use App\Http\Controllers\TaskAssignmentController;
+use App\Http\Controllers\TaskAssignmentDashboardController;
 use App\Http\Controllers\TaskEntityController;
 use App\Http\Controllers\TaskNotificationController;
 use App\Http\Controllers\TaskSourceController;
@@ -182,6 +183,10 @@ Route::middleware('can:tmam.view')->group(function () {
 
 
 Route::middleware(['auth'])->group(function () {
+
+    // لوحة متابعة التكليفات - لازم قبل resource عشان تتسجل قبل tasks/{task}
+    Route::get('tasks/dashboard', [TaskAssignmentDashboardController::class, 'index'])
+        ->name('tasks.dashboard');
 
     Route::resource('tasks', TaskAssignmentController::class)
         ->parameters(['tasks' => 'task']);

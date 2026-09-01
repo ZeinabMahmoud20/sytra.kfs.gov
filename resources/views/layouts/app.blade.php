@@ -10,13 +10,18 @@
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700;900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
-    {{-- Tailwind الحقيقي المبني عن طريق Vite، بدل رابط الـ CDN القديم --}}
-    @vite(['resources/css/app.css', 'resources/js/app.js'])
+    @vite(['resources/css/app.css', 'resources/css/style.css', 'resources/js/app.js'])
 
     @stack('styles')
 </head>
 
 <body class="bg-bg-soft text-slate-800 font-cairo">
+    <script>
+        (function() {
+            var theme = localStorage.getItem('theme') || 'dark';
+            document.documentElement.setAttribute('data-theme', theme);
+        })();
+    </script>
 
     <div id="overlay" class="fixed inset-0 bg-black/50 z-40 hidden lg:hidden"></div>
 
@@ -47,6 +52,41 @@
 
     {{-- سكريبت مشترك لكل الصفحات: فتح/قفل السايدبار، الدروب داون، المودال --}}
     <script src="{{ asset('assets/js/layout.js') }}"></script>
+
+    <script>
+        (function() {
+            var toggleBtn = document.getElementById('dashboard-theme-toggle');
+            if (toggleBtn) {
+                toggleBtn.addEventListener('click', function() {
+                    var current = document.documentElement.getAttribute('data-theme');
+                    var next = current === 'dark' ? 'light' : 'dark';
+                    document.documentElement.setAttribute('data-theme', next);
+                    localStorage.setItem('theme', next);
+                    var icon = toggleBtn.querySelector('i');
+                    if (icon) {
+                        if (next === 'light') {
+                            icon.classList.replace('fa-moon', 'fa-sun');
+                        } else {
+                            icon.classList.replace('fa-sun', 'fa-moon');
+                        }
+                    }
+                });
+                var currentTheme = document.documentElement.getAttribute('data-theme');
+                var icon = toggleBtn.querySelector('i');
+                if (icon && currentTheme === 'light') {
+                    icon.classList.replace('fa-moon', 'fa-sun');
+                }
+            }
+
+            document.addEventListener('click', function(e) {
+                var ddBtn = document.getElementById('user-dropdown-btn');
+                var ddMenu = document.getElementById('user-dropdown');
+                if (ddMenu && ddBtn && !ddBtn.contains(e.target) && !ddMenu.contains(e.target)) {
+                    ddMenu.classList.add('hidden');
+                }
+            });
+        })();
+    </script>
 
     {{-- أي سكريبت خاص بصفحة معينة يتحط هنا --}}
     @stack('scripts')

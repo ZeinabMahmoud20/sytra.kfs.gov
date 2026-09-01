@@ -124,7 +124,7 @@
             @canany(['tasks.create', 'tasks.view'])
                 @php
                     $tasksRoutes = [
-                        'tasks.create', 'tasks.index', 'tasks.show', 'tasks.edit',
+                        'tasks.create', 'tasks.index', 'tasks.show', 'tasks.edit', 'tasks.dashboard',
                         'task-sources.*', 'task-entities.*',
                     ];
                     $isTasksActive = request()->routeIs($tasksRoutes);
@@ -158,6 +158,15 @@
                                     {{ request()->routeIs('tasks.index') ? 'bg-white/15 text-white font-bold' : 'hover:bg-white/10 text-white/80' }}">
                                 <i class="fas fa-list-check w-5 text-center text-accent"></i>
                                 قائمة التكليفات
+                            </a>
+                        @endcan
+
+                        @can('tasks.view')
+                            <a href="{{ route('tasks.dashboard') }}"
+                                class="flex items-center gap-3 px-4 py-2 rounded-lg transition-all duration-300 text-sm
+                                    {{ request()->routeIs('tasks.dashboard') ? 'bg-white/15 text-white font-bold' : 'hover:bg-white/10 text-white/80' }}">
+                                <i class="fas fa-chart-pie w-5 text-center text-accent"></i>
+                                لوحة المتابعة
                             </a>
                         @endcan
 

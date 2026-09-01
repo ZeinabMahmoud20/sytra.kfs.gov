@@ -12,7 +12,7 @@
                 <h3 class="text-2xl font-black mb-1 flex items-center gap-3">
                     <i class="fas fa-tasks text-accent"></i> استمارة تسجيل تكليف
                 </h3>
-                <p class="text-slate-300 text-sm">سجّل بيانات التكليف وخصّصه للموظف المسؤول عن التنفيذ - هيوصله تنبيه فوري داخل النظام.</p>
+                <p class="text-slate-300 text-sm">سجّل بيانات التكليف وخصّصه للموظف المسؤول عن التنفيذ .</p>
             </div>
             <div class="text-left">
                 <span class="text-xs opacity-60 uppercase block">رقم التكليف التلقائي</span>

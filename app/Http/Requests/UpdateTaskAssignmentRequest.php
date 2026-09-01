@@ -22,8 +22,8 @@ class UpdateTaskAssignmentRequest extends FormRequest
         // الحالة/النسبة/موعد الرد/الملاحظات بس.
         if (! $user->can('update', $task)) {
             return [
-                'status'                 => ['required', 'in:لم يبدأ,جاري التنفيذ,تم التنفيذ,متأخر,متوقف'],
-                'completion_percentage'  => ['required', 'integer', 'min:0', 'max:100'],
+                'status'                 => ['sometimes', 'required', 'in:لم يبدأ,جاري التنفيذ,تم التنفيذ,متأخر,متوقف'],
+                'completion_percentage'  => ['sometimes', 'required', 'integer', 'min:0', 'max:100'],
                 'response_date'          => ['nullable', 'date'],
                 'notes'                  => ['nullable', 'string', 'max:2000'],
             ];
@@ -31,6 +31,7 @@ class UpdateTaskAssignmentRequest extends FormRequest
 
         // صاحب التكليف (اللي أضافه) أو الـ admin: يقدروا يعدّلوا كل حاجة
         return [
+            'received_date'          => ['required', 'date'],
             'document_type'          => ['required', 'in:وارد,صادر'],
             'source_id'              => ['required', 'exists:task_sources,id'],
             'entity_id'              => ['required', 'exists:task_entities,id'],
@@ -39,8 +40,8 @@ class UpdateTaskAssignmentRequest extends FormRequest
             'priority'               => ['required', 'in:عالية,متوسطة,منخفضة'],
             'deadline'               => ['required', 'date'],
             'response_date'          => ['nullable', 'date'],
-            'status'                 => ['required', 'in:لم يبدأ,جاري التنفيذ,تم التنفيذ,متأخر,متوقف'],
-            'completion_percentage'  => ['required', 'integer', 'min:0', 'max:100'],
+            'status'                 => ['sometimes', 'required', 'in:لم يبدأ,جاري التنفيذ,تم التنفيذ,متأخر,متوقف'],
+            'completion_percentage'  => ['sometimes', 'required', 'integer', 'min:0', 'max:100'],
             'notes'                  => ['nullable', 'string', 'max:2000'],
             'edit_note'              => ['nullable', 'string', 'max:500'],
         ];

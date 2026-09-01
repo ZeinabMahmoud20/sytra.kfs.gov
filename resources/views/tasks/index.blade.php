@@ -79,7 +79,7 @@
                     <th class="px-4 py-3">نسبة الإنجاز</th>
                     <th class="px-4 py-3">الحالة</th>
                     <th class="px-4 py-3">أيام التأخير</th>
-                    <th class="px-4 py-3"></th>
+                    <th class="px-4 py-3">إجراءات</th>
                 </tr>
             </thead>
             <tbody class="divide-y divide-gray-100">
@@ -105,7 +105,32 @@
                             @endif
                         </td>
                         <td class="px-4 py-3">
-                            <a href="{{ route('tasks.show', $task) }}" class="text-blue-600 hover:underline">تفاصيل</a>
+                            <div class="flex items-center gap-2">
+                                <a href="{{ route('tasks.show', $task) }}"
+                                   class="w-8 h-8 flex items-center justify-center text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+                                   title="عرض التفاصيل">
+                                    <i class="fas fa-eye"></i>
+                                </a>
+                                @can('update', $task)
+                                    <a href="{{ route('tasks.edit', $task) }}"
+                                       class="w-8 h-8 flex items-center justify-center text-yellow-600 hover:bg-yellow-50 rounded-lg transition-colors"
+                                       title="تعديل">
+                                        <i class="fas fa-pen"></i>
+                                    </a>
+                                @endcan
+                                @can('delete', $task)
+                                    <form method="POST" action="{{ route('tasks.destroy', $task) }}"
+                                          onsubmit="return confirm('هل أنت متأكد من حذف هذا التكليف؟');">
+                                        @csrf
+                                        @method('DELETE')
+                                        <button type="submit"
+                                                class="w-8 h-8 flex items-center justify-center text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                                                title="حذف">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
+                                    </form>
+                                @endcan
+                            </div>
                         </td>
                     </tr>
                 @empty
