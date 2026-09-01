@@ -5,6 +5,7 @@ use App\Http\Controllers\Admin\RoleController;
 use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\Admin\UserPermissionController;
 use App\Http\Controllers\AttendanceTemplateController;
+use App\Http\Controllers\ContactGuideController;
 use App\Http\Controllers\DailyAttendanceController;
 use App\Http\Controllers\DailyAttendanceEntityController;
 use App\Http\Controllers\DashboardController;
@@ -131,6 +132,30 @@ Route::middleware('can:tmam.delete')->group(function () {
 Route::middleware('can:tmam.import')->group(function () {
     Route::get('entities-import', [EntityController::class, 'showImportForm'])->name('entities.import.form');
     Route::post('entities-import', [EntityController::class, 'import'])->name('entities.import');
+});
+
+// دليل الاتصال
+Route::middleware('can:contact-guides.view')->group(function () {
+    Route::get('contact-guides', [ContactGuideController::class, 'index'])->name('contact-guides.index');
+});
+
+Route::middleware('can:contact-guides.create')->group(function () {
+    Route::get('contact-guides/create', [ContactGuideController::class, 'create'])->name('contact-guides.create');
+    Route::post('contact-guides', [ContactGuideController::class, 'store'])->name('contact-guides.store');
+});
+
+Route::middleware('can:contact-guides.edit')->group(function () {
+    Route::get('contact-guides/{contactGuide}/edit', [ContactGuideController::class, 'edit'])->name('contact-guides.edit');
+    Route::put('contact-guides/{contactGuide}', [ContactGuideController::class, 'update'])->name('contact-guides.update');
+});
+
+Route::middleware('can:contact-guides.delete')->group(function () {
+    Route::delete('contact-guides/{contactGuide}', [ContactGuideController::class, 'destroy'])->name('contact-guides.destroy');
+});
+
+Route::middleware('can:contact-guides.import')->group(function () {
+    Route::get('contact-guides-import', [ContactGuideController::class, 'showImportForm'])->name('contact-guides.import.form');
+    Route::post('contact-guides-import', [ContactGuideController::class, 'import'])->name('contact-guides.import');
 });
 
 // متاحة لأي حد عنده tmam.view - أي حد شايف يقدر يسجل الرد

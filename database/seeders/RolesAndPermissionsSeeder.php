@@ -42,6 +42,13 @@ $permissions = [
     'tasks.edit',
     'tasks.delete',
 
+    // موديول دليل الاتصال
+    'contact-guides.view',
+    'contact-guides.create',
+    'contact-guides.edit',
+    'contact-guides.delete',
+    'contact-guides.import',
+
     // إدارة النظام
     'users.manage',
     'roles.manage',

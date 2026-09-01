@@ -191,7 +191,57 @@
                 </div>
             @endcanany
 
-            {{-- 5) التمامات - زي ما هي من غير تعديل --}}
+            {{-- 5) دليل الاتصال --}}
+            @canany(['contact-guides.create', 'contact-guides.view', 'contact-guides.import'])
+                @php
+                    $contactGuidesRoutes = ['contact-guides.index', 'contact-guides.create', 'contact-guides.edit', 'contact-guides.import.*'];
+                    $isContactGuidesActive = request()->routeIs($contactGuidesRoutes);
+                @endphp
+
+                <div>
+                    <button type="button" onclick="document.getElementById('contact-guides-submenu').classList.toggle('hidden'); this.querySelector('.contact-guides-chevron').classList.toggle('rotate-180')"
+                        class="w-full flex items-center justify-between gap-4 px-4 py-3 rounded-xl transition-all duration-300 group
+                            {{ $isContactGuidesActive ? 'bg-accent text-white shadow-lg' : 'hover:bg-white/10' }}">
+                        <span class="flex items-center gap-4">
+                            <i class="fas fa-address-book w-6 text-center
+                                {{ $isContactGuidesActive ? '' : 'text-accent group-hover:scale-110 transition-transform' }}"></i>
+                            <span class="font-medium text-lg">دليل الاتصال</span>
+                        </span>
+                        <i class="fas fa-chevron-down text-sm contact-guides-chevron transition-transform duration-300 {{ $isContactGuidesActive ? 'rotate-180' : '' }}"></i>
+                    </button>
+
+                    <div id="contact-guides-submenu" class="{{ $isContactGuidesActive ? '' : 'hidden' }} mt-1 mr-4 space-y-1 border-r-2 border-white/10 pr-4">
+                        @can('contact-guides.create')
+                            <a href="{{ route('contact-guides.create') }}"
+                                class="flex items-center gap-3 px-4 py-2 rounded-lg transition-all duration-300 text-sm
+                                    {{ request()->routeIs('contact-guides.create') ? 'bg-white/15 text-white font-bold' : 'hover:bg-white/10 text-white/80' }}">
+                                <i class="fas fa-plus-circle w-5 text-center text-accent"></i>
+                                إضافة جهة اتصال
+                            </a>
+                        @endcan
+
+                        @can('contact-guides.view')
+                            <a href="{{ route('contact-guides.index') }}"
+                                class="flex items-center gap-3 px-4 py-2 rounded-lg transition-all duration-300 text-sm
+                                    {{ request()->routeIs('contact-guides.index') ? 'bg-white/15 text-white font-bold' : 'hover:bg-white/10 text-white/80' }}">
+                                <i class="fas fa-book w-5 text-center text-accent"></i>
+                                دليل الاتصال
+                            </a>
+                        @endcan
+
+                        @can('contact-guides.import')
+                            <a href="{{ route('contact-guides.import.form') }}"
+                                class="flex items-center gap-3 px-4 py-2 rounded-lg transition-all duration-300 text-sm
+                                    {{ request()->routeIs('contact-guides.import.*') ? 'bg-white/15 text-white font-bold' : 'hover:bg-white/10 text-white/80' }}">
+                                <i class="fas fa-file-excel w-5 text-center text-accent"></i>
+                                رفع من Excel
+                            </a>
+                        @endcan
+                    </div>
+                </div>
+            @endcanany
+
+            {{-- 6) التمامات - زي ما هي من غير تعديل --}}
             @can('tmam.view')
                 @php
                     $tmamRoutes = ['daily-attendances.index', 'daily-attendances.show', 'attendance-templates.*', 'entities.*', 'entity-attendance-dashboard'];
@@ -242,7 +292,7 @@
                 </div>
             @endcan
 
-            {{-- 6) تقييم الجهات - زي ما هي من غير تعديل --}}
+            {{-- 7) تقييم الجهات - زي ما هي من غير تعديل --}}
             @canany(['evaluations.evaluate', 'evaluations.manage', 'evaluations.dashboard'])
                 @php
                     $evalRoutes = ['evaluations.entities', 'evaluations.daily', 'evaluations.dashboard'];
@@ -292,7 +342,7 @@
                 </div>
             @endcanany
 
-            {{-- 7) إدارة المستخدمين (قائمة منسدلة تجمع: إدارة المستخدمين - الأدوار والصلاحيات - إدارة الصلاحيات - صلاحيات مباشرة للموظفين) --}}
+            {{-- 8) إدارة المستخدمين (قائمة منسدلة تجمع: إدارة المستخدمين - الأدوار والصلاحيات - إدارة الصلاحيات - صلاحيات مباشرة للموظفين) --}}
             @canany(['users.manage', 'roles.manage'])
                 @php
                     $usersMgmtRoutes = ['admin.users.*', 'admin.roles.*', 'admin.permissions.*', 'admin.user-permissions.*'];
@@ -347,7 +397,7 @@
                 </div>
             @endcanany
 
-            {{-- 8) الإعدادات --}}
+            {{-- 9) الإعدادات --}}
             <a href="{{ Route::has('profile.settings') ? route('profile.settings') : '#' }}"
                 class="flex items-center gap-4 px-4 py-3 rounded-xl transition-all duration-300 group
                     {{ request()->routeIs('profile.settings') ? 'bg-accent text-white shadow-lg' : 'hover:bg-white/10' }}">

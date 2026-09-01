@@ -13,7 +13,8 @@ return [
         'cities' => 'المدن',
         'villages' => 'القرى',
         'tmam' => 'تمام',
-        'evaluations' => 'تقييم الجهات',        
+        'evaluations' => 'تقييم الجهات',
+        'contact-guides' => 'دليل الاتصال',        
         // ضيف هنا أي module جديد يظهر عندك
     ],
 
@@ -31,6 +32,7 @@ return [
         'lock' => 'قفل',
         'unlock' => 'فتح القفل',
         'export' => 'تصدير',
+        'import' => 'استيراد',
         'assign' => 'إسناد',
         'manage' => 'إدارة',
         'evaluate' => 'تقييم',
