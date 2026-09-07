@@ -26,7 +26,7 @@
 
             <div class="p-6 bg-slate-50 border-b border-slate-100">
                 <p class="text-xs font-black text-slate-500 mb-1">نص التمام</p>
-                <p class="text-2xl">{{ $dailyAttendance->attendanceTemplate->script }}</p>
+                <p class="text-xl">{{ $dailyAttendance->attendanceTemplate->script }}</p>
             </div>
 
             <div class="divide-y divide-slate-100">

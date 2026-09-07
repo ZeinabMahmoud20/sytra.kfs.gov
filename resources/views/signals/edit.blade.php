@@ -94,7 +94,12 @@
             </div>
             <div class="space-y-1">
                 <label class="block text-xs font-black text-slate-600">مضمون الإشارة</label>
-                <input type="text" list="signal-contents-list" class="signal-content w-full px-4 py-3 rounded-xl border border-slate-200 bg-white focus:ring-2 focus:ring-accent/20 focus:border-accent outline-none" placeholder="اكتب أو اختر من المضامين الجاهزة">
+                <select class="signal-content w-full px-4 py-3 rounded-xl border border-slate-200 bg-white focus:ring-2 focus:ring-accent/20 focus:border-accent outline-none">
+                    <option value="" disabled selected>اختر المضمون</option>
+                    @foreach ($signalContents as $content)
+                        <option value="{{ $content }}">{{ $content }}</option>
+                    @endforeach
+                </select>
             </div>
         </div>
 
@@ -123,12 +128,6 @@
         </div>
     </div>
 </template>
-
-<datalist id="signal-contents-list">
-    @foreach ($signalContents as $content)
-        <option value="{{ $content }}"></option>
-    @endforeach
-</datalist>
 
 @push('scripts')
     <script>
