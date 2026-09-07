@@ -12,12 +12,12 @@
             <div class="p-6 pt-0 flex gap-3">
                 <button onclick="tmamCloseReminder()"
                     class="flex-1 bg-slate-100 hover:bg-slate-200 text-slate-600 font-bold py-3 rounded-xl transition-all">
-                    تجاهل
+                     فتح تمامات اليوم
+
                 </button>
                 <a href="{{ route('daily-attendances.index') }}"
                     class="flex-1 bg-primary hover:bg-primary/90 text-white font-bold py-3 rounded-xl text-center transition-all">
-                    <i class="fas fa-arrow-left"></i> فتح تمامات اليوم
-                </a>
+                    <i class="fas fa-arrow-left"></i> تجاهل                </a>
             </div>
         </div>
     </div>
