@@ -181,9 +181,7 @@
                             <label class="block text-sm font-bold text-slate-500">ملاحظة (سبب التحديث)</label>
                             <textarea name="notes" rows="2"
                                 class="w-full px-4 py-3 rounded-xl border border-slate-200 bg-white focus:ring-2 focus:ring-accent/20 focus:border-accent outline-none transition-all">{{ $task->notes }}</textarea>
-                        </div>
-
-                      
+                        </div>  
                     </form>
                 </div>
             @endcan

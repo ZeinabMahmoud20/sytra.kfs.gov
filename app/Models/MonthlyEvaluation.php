@@ -28,7 +28,7 @@ class MonthlyEvaluation extends Model
 
     public function entity(): BelongsTo
     {
-        return $this->belongsTo(EvaluationEntity::class, 'evaluation_entity_id');
+        return $this->belongsTo(EvaluationEntity::class, 'evaluation_entity_id')->withTrashed();
     }
 
     public function scopeForMonth($query, int $year, int $month)

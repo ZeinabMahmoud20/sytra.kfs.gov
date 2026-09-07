@@ -17,6 +17,7 @@ use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\Rule;
 
 class ReportController extends Controller
@@ -145,7 +146,9 @@ class ReportController extends Controller
             ? $this->statuses
             : array_values(array_diff($this->statuses, ['تم الانتهاء']));
 
-        $validated = $request->validate([
+        $validated = Validator::make(
+            $request->all(),
+            [
             'REPORTER_NAME' => ['required', 'string', 'max:50'],
             'REPORT_FOLLOWUP_NUMBER' => ['required', 'regex:/^(01[0125][0-9]{8}|0[0-9]{9})$/'],
             'REPORTER_SSN' => ['required', 'digits:14', 'regex:/^[23]\d{13}$/'],
@@ -173,7 +176,10 @@ class ReportController extends Controller
             'deceased.*.age' => ['required_with:deceased', 'integer', 'min:1', 'max:150'],
             'deceased.*.address' => ['nullable', 'string'],
             'deceased.*.followup' => ['nullable', 'string'],
-        ]);
+            ],
+            $this->reportValidationMessages(),
+            $this->reportValidationAttributes()
+        )->validate();
 
         $isAdmin = auth()->user()->hasRole('مشرف عام');
         $startDate = $isAdmin ? $validated['REPORT_START_DATE'] : $report->REPORT_START_DATE;
@@ -460,7 +466,9 @@ class ReportController extends Controller
 
     public function store(Request $request)
     {
-        $validated = $request->validate([
+        $validated = Validator::make(
+            $request->all(),
+            [
             'REPORTER_NAME' => ['required', 'string', 'max:50'],
             'REPORT_FOLLOWUP_NUMBER' => ['required', 'regex:/^(01[0125][0-9]{8}|0[0-9]{9})$/'],
             'REPORTER_SSN' => ['required', 'digits:14', 'regex:/^[23]\d{13}$/'],
@@ -487,7 +495,10 @@ class ReportController extends Controller
             'deceased.*.birth_date' => ['required_with:deceased', 'integer', 'min:0', 'max:150'],
             'deceased.*.address' => ['nullable', 'string'],
             'deceased.*.followup' => ['nullable', 'string'],
-        ]);
+            ],
+            $this->reportValidationMessages(),
+            $this->reportValidationAttributes()
+        )->validate();
 
         $isAdmin = auth()->user()->hasRole('مشرف عام');
         $startDate = $isAdmin ? $validated['REPORT_START_DATE'] : now()->format('Y-m-d');
@@ -562,7 +573,7 @@ class ReportController extends Controller
         ]);
 
         return redirect()
-            ->route('dashboard')
+            ->route('reports.index')
             ->with('success', "تم تسجيل البلاغ بنجاح برقم {$report->REPORT_REGISTER_NUMBER}");
     }
 
@@ -573,5 +584,65 @@ class ReportController extends Controller
             ->value('max_num');
 
         return 'REP-' . (((int) $lastNumber) + 1);
+    }
+
+    /**
+     * رسائل التحقق باللغة العربية الخاصة بفورم الإضافة والتعديل.
+     */
+    protected function reportValidationMessages(): array
+    {
+        return [
+            'required' => 'حقل :attribute مطلوب.',
+            'required_with' => 'حقل :attribute مطلوب.',
+            'string' => 'حقل :attribute يجب أن يكون نصاً.',
+            'integer' => 'حقل :attribute يجب أن يكون عدداً صحيحاً.',
+            'numeric' => 'حقل :attribute يجب أن يكون رقماً.',
+            'max' => 'حقل :attribute يجب ألا يتجاوز :max حرفاً.',
+            'min' => 'حقل :attribute يجب أن يكون أكبر من أو يساوي :min.',
+            'digits' => 'حقل :attribute يجب أن يتكون من :digits أرقام.',
+            'date' => 'حقل :attribute يجب أن يكون تاريخاً صحيحاً.',
+            'exists' => 'القيمة المختارة في حقل :attribute غير صحيحة أو غير موجودة.',
+            'in' => 'القيمة المختارة في حقل :attribute غير صحيحة.',
+            'array' => 'حقل :attribute يجب أن يكون مجموعة قيم.',
+            'regex' => 'صيغة حقل :attribute غير صحيحة.',
+            'REPORT_FOLLOWUP_NUMBER.regex' => 'رقم الهاتف غير صحيح: يجب أن يكون 11 رقماً يبدأ بـ 01 (موبايل) أو 10 أرقام يبدأ بـ 0 (أرضي).',
+            'REPORTER_SSN.regex' => 'الرقم القومي غير صحيح: يجب أن يتكون من 14 رقماً ويبدأ بـ 2 أو 3.',
+            'REPORTER_SSN.digits' => 'الرقم القومي يجب أن يتكون من 14 رقماً بالضبط.',
+        ];
+    }
+
+    /**
+     * الأسماء العربية للحقول المستخدمة في فورم الإضافة والتعديل.
+     */
+    protected function reportValidationAttributes(): array
+    {
+        return [
+            'REPORTER_NAME' => 'مقدم البلاغ',
+            'REPORT_FOLLOWUP_NUMBER' => 'رقم الهاتف',
+            'REPORTER_SSN' => 'الرقم القومي',
+            'REPORT_START_DATE' => 'تاريخ البلاغ',
+            'REPORT_START_TIME' => 'وقت البلاغ',
+            'REPORTING_Auth' => 'جهة البلاغ',
+            'REPORTING_SORT' => 'نوع البلاغ',
+            'CITY' => 'المركز',
+            'location_type' => 'نوع الموقع',
+            'VILLAGE' => 'المدينة/القرية',
+            'X_AXIS' => 'الإحداثي X',
+            'Y_AXIS' => 'الإحداثي Y',
+            'PLACE_Accident' => 'تفاصيل الموقع',
+            'DAMAGE' => 'ملخص البلاغ',
+            'REQUEST_STATUS' => 'حالة البلاغ',
+            'notified_authorities' => 'الجهات المخطرة',
+            'injured.*.name' => 'اسم المصاب',
+            'injured.*.age' => 'عمر المصاب',
+            'injured.*.birth_date' => 'عمر المصاب',
+            'injured.*.diagnosis' => 'تشخيص المصاب',
+            'injured.*.followup' => 'متابعة المصاب',
+            'deceased.*.name' => 'اسم المتوفى',
+            'deceased.*.age' => 'عمر المتوفى',
+            'deceased.*.birth_date' => 'عمر المتوفى',
+            'deceased.*.address' => 'عنوان المتوفى',
+            'deceased.*.followup' => 'متابعة المتوفى',
+        ];
     }
 }

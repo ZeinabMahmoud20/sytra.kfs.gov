@@ -240,7 +240,7 @@
                                 <i class="fas fa-folder-open text-sm"></i>
                             </a>
                             <form method="POST" action="{{ route('reports.destroy', $report) }}"
-                                onsubmit="return confirm('متأكد إنك عايز تحذف البلاغ ده؟ الإجراء ده مش قابل للتراجع.')">
+                                onsubmit="return confirm('هل انت متأكد من حذف هذا البلاغ؟ هذا الإجراء غير قابل للتراجع.')">
                                 @csrf
                                 @method('DELETE')
                                 <button type="submit" title="حذف"

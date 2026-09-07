@@ -72,7 +72,7 @@
                         </div>
                         <div class="space-y-2">
                             <div class="flex items-center justify-between">
-                                <label class="block text-sm font-bold text-slate-500">رقم الهاتف المحمول <span class="text-red-500">*</span></label>
+                                <label id="phone-label" class="block text-sm font-bold text-slate-500">رقم الهاتف المحمول <span class="text-red-500">*</span></label>
                                 <button type="button" id="phone-toggle"
                                     class="relative inline-flex h-8 w-14 items-center rounded-full bg-slate-300 transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-accent/20"
                                     @disabled($isLocked)>
@@ -383,6 +383,7 @@
     const phoneToggle = document.getElementById('phone-toggle');
     const phoneToggleDot = document.getElementById('phone-toggle-dot');
     const phoneTypeHidden = document.getElementById('phone-type-hidden');
+    const phoneLabel = document.getElementById('phone-label');
     let isMobile = phoneTypeHidden.value === 'mobile';
 
     function updatePhoneValidation() {
@@ -393,6 +394,7 @@
             phoneToggle.classList.remove('bg-slate-300');
             phoneToggle.classList.add('bg-accent');
             phoneTypeHidden.value = 'mobile';
+            phoneLabel.innerHTML = 'رقم الهاتف المحمول <span class="text-red-500">*</span>';
         } else {
             phoneInput.maxLength = 10;
             phoneInput.placeholder = '0xxxxxxxxx';
@@ -400,6 +402,7 @@
             phoneToggle.classList.remove('bg-accent');
             phoneToggle.classList.add('bg-slate-300');
             phoneTypeHidden.value = 'landline';
+            phoneLabel.innerHTML = 'رقم الهاتف الأرضي <span class="text-red-500">*</span>';
         }
     }
 
@@ -537,6 +540,96 @@
     @if($errors->any())
     loadReportTypes(authSelect.value, currentReportSort);
     @endif
+
+    // ------------------------------------------------------------------
+    // 5. رسائل التحقق العربية للتحقق الأمامي (قبل إرسال الفورم للـ Controller)
+    // ------------------------------------------------------------------
+    function setupArabicValidation(form) {
+        if (!form || form.dataset.arabicValidation === '1') return;
+        form.dataset.arabicValidation = '1';
+
+        const fieldMessages = {
+            'REPORTER_NAME': { missing: 'من فضلك أدخل اسم مقدم البلاغ.' },
+            'REPORT_FOLLOWUP_NUMBER': { missing: 'من فضلك أدخل رقم الهاتف.' },
+            'REPORTER_SSN': { missing: 'من فضلك أدخل الرقم القومي.', pattern: 'الرقم القومي يجب أن يتكون من 14 رقماً بالضبط.' },
+            'REPORT_START_DATE': { missing: 'من فضلك اختر تاريخ البلاغ.' },
+            'REPORT_START_TIME': { missing: 'من فضلك اختر وقت البلاغ.' },
+            'REPORTING_Auth': { missing: 'من فضلك اختر جهة البلاغ.' },
+            'REPORTING_SORT': { missing: 'من فضلك اختر نوع البلاغ.' },
+            'CITY': { missing: 'من فضلك اختر المركز.' },
+            'VILLAGE': { missing: 'من فضلك اختر المدينة أو القرية.' },
+            'PLACE_Accident': { missing: 'من فضلك أدخل تفاصيل الموقع.' },
+            'DAMAGE': { missing: 'من فضلك أدخل ملخص البلاغ والوصف الفني.' },
+            'REQUEST_STATUS': { missing: 'من فضلك اختر حالة البلاغ.' },
+        };
+
+        const classMessages = {
+            'inj-name': { missing: 'من فضلك أدخل اسم المصاب.' },
+            'inj-birth': { missing: 'من فضلك أدخل عمر المصاب.', range: 'عمر المصاب خارج النطاق المسموح (1-150).' },
+            'inj-diagnosis': { missing: 'من فضلك أدخل تشخيص المصاب.' },
+            'inj-followup': { missing: 'من فضلك أدخل متابعة المصاب.' },
+            'dec-name': { missing: 'من فضلك أدخل اسم المتوفى.' },
+            'dec-birth': { missing: 'من فضلك أدخل عمر المتوفى.', range: 'عمر المتوفى خارج النطاق المسموح (1-150).' },
+            'dec-address': { missing: 'من فضلك أدخل عنوان المتوفى.' },
+            'dec-followup': { missing: 'من فضلك أدخل متابعة المتوفى.' },
+        };
+
+        const genericFallback = {
+            valueMissing: 'هذا الحقل مطلوب.',
+            patternMismatch: 'صيغة القيمة غير صحيحة.',
+            tooLong: 'القيمة طويلة جداً.',
+            badInput: 'القيمة المدخلة غير صحيحة.',
+            rangeUnderflow: 'القيمة أقل من الحد المسموح.',
+            rangeOverflow: 'القيمة أكبر من الحد المسموح.',
+            stepMismatch: 'القيمة غير مقبولة.',
+            typeMismatch: 'نوع القيمة غير صحيح.',
+        };
+
+        function validationMessageFor(el) {
+            const v = el.validity;
+            const nameMsg = fieldMessages[el.name];
+            const cls = el.classList;
+            let map = nameMsg;
+            if (!map) {
+                if (cls.contains('inj-name')) map = classMessages['inj-name'];
+                else if (cls.contains('inj-birth')) map = classMessages['inj-birth'];
+                else if (cls.contains('inj-diagnosis')) map = classMessages['inj-diagnosis'];
+                else if (cls.contains('inj-followup')) map = classMessages['inj-followup'];
+                else if (cls.contains('dec-name')) map = classMessages['dec-name'];
+                else if (cls.contains('dec-birth')) map = classMessages['dec-birth'];
+                else if (cls.contains('dec-address')) map = classMessages['dec-address'];
+                else if (cls.contains('dec-followup')) map = classMessages['dec-followup'];
+            }
+            if (v.valueMissing) return (map && map.missing) || genericFallback.valueMissing;
+            if (v.patternMismatch) return (map && map.pattern) || genericFallback.patternMismatch;
+            if (v.tooLong) return genericFallback.tooLong;
+            if (v.badInput) return genericFallback.badInput;
+            if (v.rangeUnderflow) return (map && map.range) || genericFallback.rangeUnderflow;
+            if (v.rangeOverflow) return (map && map.range) || genericFallback.rangeOverflow;
+            if (v.stepMismatch) return genericFallback.stepMismatch;
+            if (v.typeMismatch) return genericFallback.typeMismatch;
+            return genericFallback.valueMissing;
+        }
+
+        // المتصفح بيرسل حدث invalid لكل حقل غير صحيح قبل ما يظهر الرسالة،
+        // فبنحط الرسالة العربية هنا عشان تظهر بدل الانجليزية.
+        form.addEventListener('invalid', function (e) {
+            e.target.setCustomValidity(validationMessageFor(e.target));
+        }, true);
+
+        // مسح الرسالة أول ما المستخدم يعدل الحقل عشان الحقل ميفضلش معلم عليه غلط
+        form.addEventListener('input', function (e) {
+            if (e.target && e.target.setCustomValidity) {
+                e.target.setCustomValidity('');
+            }
+        });
+        form.addEventListener('change', function (e) {
+            if (e.target && e.target.setCustomValidity) {
+                e.target.setCustomValidity('');
+            }
+        });
+    }
+    setupArabicValidation(document.getElementById('report-form'));
 </script>
 @endpush
 @endif
