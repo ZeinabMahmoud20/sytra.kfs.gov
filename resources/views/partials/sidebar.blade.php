@@ -41,7 +41,7 @@
             {{-- 2) البلاغات (قائمة منسدلة: إضافة بلاغ - تقارير البلاغات) --}}
             @canany(['reports.create', 'reports.view'])
                 @php
-                    $reportsRoutes = ['reports.create', 'reports.index'];
+                    $reportsRoutes = ['reports.create', 'reports.index', 'reports.monthly-stats'];
                     $isReportsActive = request()->routeIs($reportsRoutes);
                 @endphp
 
@@ -68,11 +68,29 @@
                         @endcan
 
                         @can('reports.view')
-                            <a href="{{ route('reports.index') }}"
+                            <a href="{{ route('reports.monthly-stats') }}"
                                 class="flex items-center gap-3 px-4 py-2 rounded-lg transition-all duration-300 text-sm
-                                    {{ request()->routeIs('reports.index') ? 'bg-white/15 text-white font-bold' : 'hover:bg-white/10 text-white/80' }}">
-                                <i class="fas fa-file-alt w-5 text-center text-accent"></i>
-                                تقارير البلاغات
+                                    {{ request()->routeIs('reports.monthly-stats') ? 'bg-white/15 text-white font-bold' : 'hover:bg-white/10 text-white/80' }}">
+                                <i class="fas fa-chart-column w-5 text-center text-accent"></i>
+                                إحصائيات البلاغات الشهرية
+                            </a>
+                        @endcan
+
+                        @can('reports.view')
+                            <a href="{{ route('reports.dashboard') }}"
+                                class="flex items-center gap-3 px-4 py-2 rounded-lg transition-all duration-300 text-sm
+                                    {{ request()->routeIs('reports.dashboard') ? 'bg-white/15 text-white font-bold' : 'hover:bg-white/10 text-white/80' }}">
+                                <i class="fas fa-chart-line w-5 text-center text-accent"></i>
+                                لوحة تحكم البلاغات
+                            </a>
+                        @endcan
+
+                        @can('reports.monthly-stats')
+                            <a href="{{ route('reports.monthly-stats') }}"
+                                class="flex items-center gap-3 px-4 py-2 rounded-lg transition-all duration-300 text-sm
+                                    {{ request()->routeIs('reports.monthly-stats') ? 'bg-white/15 text-white font-bold' : 'hover:bg-white/10 text-white/80' }}">
+                                <i class="fas fa-chart-column w-5 text-center text-accent"></i>
+                                إحصائيات البلاغات الشهرية
                             </a>
                         @endcan
                     </div>

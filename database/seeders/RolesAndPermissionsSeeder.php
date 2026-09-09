@@ -23,6 +23,7 @@ $permissions = [
     'reports.edit',
     'reports.delete',
     'reports.lock',
+    'reports.monthly-stats',
 
     // موديول الإشارات
     'signals.view',

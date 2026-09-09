@@ -57,7 +57,7 @@
                                     @endcan
                                     @can('tmam.delete')
                                         <form method="POST" action="{{ route('attendance-templates.destroy', $template) }}"
-                                            onsubmit="return confirm('متأكد إنك عايز تحذف هذا التمام؟ هيتم حذف كل السجلات المرتبطة بيه كمان.')">
+                                            onsubmit="return confirm('هل انت متأكدمن حذف هذا التمام؟ سيتم حذف كل السجلات المرتبطة به.')">
                                             @csrf
                                             @method('DELETE')
                                             <button type="submit" title="حذف"

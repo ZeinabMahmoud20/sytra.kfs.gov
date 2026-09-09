@@ -11,7 +11,9 @@ use App\Http\Controllers\DailyAttendanceEntityController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\EntityAttendanceDashboardController;
 use App\Http\Controllers\EntityController;
+use App\Http\Controllers\MonthlyReportStatsController;
 use App\Http\Controllers\ReportController;
+use App\Http\Controllers\ReportDashboardController;
 use App\Http\Controllers\SignalController;
 use App\Http\Controllers\TaskAssignmentController;
 use App\Http\Controllers\TaskAssignmentDashboardController;
@@ -56,6 +58,14 @@ Route::middleware(['auth'])->group(function () {
         ->name('reports.report-types-by-auth');
     Route::get('/reports/villages-by-city/{city}', [ReportController::class, 'villagesByCity'])
         ->name('reports.villages-by-city');
+
+    // لازم قبل route('reports.show') عشان "monthly-stats" و "dashboard" يتم تفسيرهم كمعرّف
+    Route::get('/reports/monthly-stats', [MonthlyReportStatsController::class, 'index'])
+        ->middleware('permission:reports.monthly-stats')
+        ->name('reports.monthly-stats');
+
+    Route::get('/reports/dashboard', [ReportDashboardController::class, 'index'])
+        ->name('reports.dashboard');
 
     Route::get('/reports/{report}/attachments/create', [ReportController::class, 'createAttachment'])
         ->name('reports.attachments.create');
