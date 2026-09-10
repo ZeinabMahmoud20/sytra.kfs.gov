@@ -10,14 +10,14 @@
             <div id="tmam-reminder-list" class="p-6 space-y-3 max-h-72 overflow-y-auto"></div>
 
             <div class="p-6 pt-0 flex gap-3">
-                <button onclick="tmamCloseReminder()"
-                    class="flex-1 bg-slate-100 hover:bg-slate-200 text-slate-600 font-bold py-3 rounded-xl transition-all">
-                     فتح تمامات اليوم
-
-                </button>
                 <a href="{{ route('daily-attendances.index') }}"
                     class="flex-1 bg-primary hover:bg-primary/90 text-white font-bold py-3 rounded-xl text-center transition-all">
-                    <i class="fas fa-arrow-left"></i> تجاهل                </a>
+                    <i class="fas fa-clipboard-list"></i> فتح تمامات اليوم
+                </a>
+                <button onclick="tmamCloseReminder()"
+                    class="flex-1 bg-slate-100 hover:bg-slate-200 text-slate-600 font-bold py-3 rounded-xl transition-all">
+                    تجاهل
+                </button>
             </div>
         </div>
     </div>
@@ -74,7 +74,7 @@
                         <p class="text-xs text-slate-400">الموعد: ${item.time}</p>
                     </div>
                     <div class="flex items-center gap-2">
-                        <a href="${item.url}"
+                        <a href="${item.url}" onclick="tmamCloseReminder()"
                             class="bg-primary hover:bg-primary/90 text-white text-xs font-bold px-3 py-2 rounded-lg flex items-center gap-1 transition-all">
                             <i class="fas fa-eye"></i> فتح التمام
                         </a>
