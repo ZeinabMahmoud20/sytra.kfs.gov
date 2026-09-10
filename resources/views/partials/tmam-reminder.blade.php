@@ -68,12 +68,18 @@
         function tmamRenderList(items) {
             const list = document.getElementById('tmam-reminder-list');
             list.innerHTML = items.map(item => `
-                <div class="flex items-center justify-between bg-slate-50 rounded-xl p-4">
+                <div class="flex items-center justify-between gap-3 bg-slate-50 rounded-xl p-4">
                     <div>
                         <p class="font-bold text-primary">${item.template_name}</p>
                         <p class="text-xs text-slate-400">الموعد: ${item.time}</p>
                     </div>
-                    <i class="fas fa-clock text-accent"></i>
+                    <div class="flex items-center gap-2">
+                        <a href="${item.url}"
+                            class="bg-primary hover:bg-primary/90 text-white text-xs font-bold px-3 py-2 rounded-lg flex items-center gap-1 transition-all">
+                            <i class="fas fa-eye"></i> فتح التمام
+                        </a>
+                        <i class="fas fa-clock text-accent"></i>
+                    </div>
                 </div>
             `).join('');
         }

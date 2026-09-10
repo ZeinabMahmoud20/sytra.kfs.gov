@@ -27,6 +27,7 @@
                     <tr>
                         <th class="px-4 py-4 font-bold">اسم التمام</th>
                         <th class="px-4 py-4 font-bold">موعد التمام</th>
+                        <th class="px-4 py-4 font-bold text-center">التكرار</th>
                         <th class="px-4 py-4 font-bold text-center">عدد الجهات المرتبطة</th>
                         <th class="px-4 py-4 font-bold text-center">الجهات يوميًا</th>
                         <th class="px-4 py-4 font-bold text-center">الحالة</th>
@@ -37,7 +38,17 @@
                     @forelse ($templates as $template)
                         <tr class="hover:bg-slate-50 transition-colors">
                             <td class="px-4 py-4 font-bold text-primary">{{ $template->name }}</td>
-                            <td class="px-4 py-4 text-slate-500">{{ $template->attendance_time->format('h:i A') }}</td>
+                            <td class="px-4 py-4 text-slate-500">
+                                {{ $template->attendance_time->format('h:i A') }}
+                                @if ($template->frequency === 'twice_daily' && $template->second_attendance_time)
+                                    <br><span class="text-xs text-slate-400">+ {{ $template->second_attendance_time->format('h:i A') }}</span>
+                                @endif
+                            </td>
+                            <td class="px-4 py-4 text-center">
+                                <span class="px-3 py-1 rounded-full text-xs font-black bg-blue-100 text-blue-600">
+                                    {{ \App\Models\AttendanceTemplate::FREQUENCY_LABELS[$template->frequency] ?? $template->frequency }}
+                                </span>
+                            </td>
                             <td class="px-4 py-4 text-center text-slate-500">{{ $template->entities_count }}</td>
                             <td class="px-4 py-4 text-center text-slate-500">{{ $template->daily_entities_count }}</td>
                             <td class="px-4 py-4 text-center">
@@ -71,7 +82,7 @@
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="6" class="px-6 py-8 text-center text-slate-400">لا توجد تمامات مسجلة</td>
+                            <td colspan="7" class="px-6 py-8 text-center text-slate-400">لا توجد تمامات مسجلة</td>
                         </tr>
                     @endforelse
                 </tbody>

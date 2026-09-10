@@ -20,61 +20,71 @@ class GenerateDailyAttendances extends Command
 
         foreach ($templates as $template) {
 
-            // لو السجل موجود بالفعل لليوم ده، تجاهل التمام ده
-            $alreadyExists = $template->dailyAttendances()
-                ->whereDate('attendance_date', $today)
-                ->exists();
-
-            if ($alreadyExists) {
-                $this->line("Skipped: {$template->name} (already generated for {$today})");
+            if (! $template->shouldRunToday()) {
+                $this->line("Skipped: {$template->name} (frequency: {$template->frequency} - not scheduled for {$today})");
                 continue;
             }
 
-            DB::transaction(function () use ($template, $today) {
+            $timeSlots = $template->frequency === 'twice_daily' ? [1, 2] : [1];
 
-                // جيب الـ Cycle الحالية، أو أنشئ أول واحدة لو مفيش
-                $cycle = $template->currentCycle();
+            foreach ($timeSlots as $timeSlot) {
 
-                if (! $cycle) {
-                    $cycle = $template->cycles()->create(['cycle_number' => 1]);
+                $alreadyExists = $template->dailyAttendances()
+                    ->whereDate('attendance_date', $today)
+                    ->where('time_slot', $timeSlot)
+                    ->exists();
+
+                if ($alreadyExists) {
+                    $this->line("Skipped: {$template->name} (slot {$timeSlot} already generated for {$today})");
+                    continue;
                 }
 
-                $allEntityIds = $template->entities()->pluck('entities.id')->toArray();
-                $usedEntityIds = $cycle->usedEntityIds();
-                $remainingEntityIds = array_values(array_diff($allEntityIds, $usedEntityIds));
+                DB::transaction(function () use ($template, $today, $timeSlot) {
 
-                // لو خلصت كل الجهات في الـ Cycle الحالية، ابدأ Cycle جديدة
-                if (empty($remainingEntityIds)) {
-                    $cycle = $template->cycles()->create([
-                        'cycle_number' => $cycle->cycle_number + 1,
+                    $cycle = $template->currentCycle();
+
+                    if (! $cycle) {
+                        $cycle = $template->cycles()->create(['cycle_number' => 1]);
+                    }
+
+                    $allEntityIds = $template->entities()->pluck('entities.id')->toArray();
+                    $usedEntityIds = $cycle->usedEntityIds();
+                    $remainingEntityIds = array_values(array_diff($allEntityIds, $usedEntityIds));
+
+                    if (empty($remainingEntityIds)) {
+                        $cycle = $template->cycles()->create([
+                            'cycle_number' => $cycle->cycle_number + 1,
+                        ]);
+
+                        $remainingEntityIds = $allEntityIds;
+                    }
+
+                    $countToPick = min($template->daily_entities_count, count($remainingEntityIds));
+
+                    $selectedEntityIds = collect($remainingEntityIds)
+                        ->shuffle()
+                        ->take($countToPick)
+                        ->values()
+                        ->toArray();
+
+                    $dailyAttendance = $template->dailyAttendances()->create([
+                        'attendance_cycle_id' => $cycle->id,
+                        'attendance_date' => $today,
+                        'time_slot' => $timeSlot,
+                        'status' => 'created',
                     ]);
 
-                    $remainingEntityIds = $allEntityIds;
-                }
+                    foreach ($selectedEntityIds as $entityId) {
+                        $dailyAttendance->dailyAttendanceEntities()->create([
+                            'entity_id' => $entityId,
+                            'status' => 'pending',
+                        ]);
+                    }
+                });
 
-                $countToPick = min($template->daily_entities_count, count($remainingEntityIds));
-
-                $selectedEntityIds = collect($remainingEntityIds)
-                    ->shuffle()
-                    ->take($countToPick)
-                    ->values()
-                    ->toArray();
-
-                $dailyAttendance = $template->dailyAttendances()->create([
-                    'attendance_cycle_id' => $cycle->id,
-                    'attendance_date' => $today,
-                    'status' => 'created',
-                ]);
-
-                foreach ($selectedEntityIds as $entityId) {
-                    $dailyAttendance->dailyAttendanceEntities()->create([
-                        'entity_id' => $entityId,
-                        'status' => 'pending',
-                    ]);
-                }
-            });
-
-            $this->info("Generated: {$template->name} for {$today}");
+                $slotLabel = $timeSlot === 2 ? ' (موعد ثاني)' : '';
+                $this->info("Generated: {$template->name}{$slotLabel} for {$today}");
+            }
         }
 
         return self::SUCCESS;

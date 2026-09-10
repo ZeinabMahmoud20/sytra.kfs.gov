@@ -48,6 +48,72 @@
                 </div>
 
                 <div class="space-y-1">
+                    <label class="block text-xs font-black text-slate-600">تكرار التمام <span class="text-red-500">*</span></label>
+                    <select name="frequency" id="frequency-select"
+                        class="w-full px-4 py-3 rounded-xl border border-slate-200 bg-white focus:ring-2 focus:ring-accent/20 focus:border-accent outline-none">
+                        <option value="daily" @selected(old('frequency', $template->frequency) === 'daily')>يومي</option>
+                        <option value="twice_daily" @selected(old('frequency', $template->frequency) === 'twice_daily')>مرتين في اليوم</option>
+                        <option value="weekly" @selected(old('frequency', $template->frequency) === 'weekly')>أسبوعي</option>
+                        <option value="monthly" @selected(old('frequency', $template->frequency) === 'monthly')>شهري</option>
+                        <option value="custom_dates" @selected(old('frequency', $template->frequency) === 'custom_dates')>بتاريخ دوري</option>
+                    </select>
+                </div>
+
+                {{-- موعد التمام الثاني --}}
+                <div id="second-time-group" class="space-y-1 hidden">
+                    <label class="block text-xs font-black text-slate-600">موعد التمام الثاني <span class="text-red-500">*</span></label>
+                    <input type="time" name="second_attendance_time" value="{{ old('second_attendance_time', $template->second_attendance_time?->format('H:i')) }}"
+                        class="w-full px-4 py-3 rounded-xl border border-slate-200 bg-white focus:ring-2 focus:ring-accent/20 focus:border-accent outline-none">
+                </div>
+
+                {{-- أيام الأسبوع --}}
+                <div id="weekly-group" class="space-y-2 hidden">
+                    <label class="block text-xs font-black text-slate-600">أيام التمام <span class="text-red-500">*</span></label>
+                    <div class="flex flex-wrap gap-3">
+                        @php
+                            $weekDays = [
+                                0 => 'الأحد', 1 => 'الإثنين', 2 => 'الثلاثاء',
+                                3 => 'الأربعاء', 4 => 'الخميس', 5 => 'الجمعة', 6 => 'السبت'
+                            ];
+                            $selectedDays = old('frequency_config.days_of_week', $template->frequency_config['days_of_week'] ?? []);
+                        @endphp
+                        @foreach ($weekDays as $value => $label)
+                            <label class="flex items-center gap-2 bg-slate-50 px-4 py-2 rounded-lg border-2 border-slate-200 font-bold text-sm cursor-pointer has-[:checked]:border-accent has-[:checked]:bg-accent/10">
+                                <input type="checkbox" name="frequency_config[days_of_week][]" value="{{ $value }}"
+                                    @checked(in_array($value, $selectedDays))
+                                    class="w-4 h-4 accent-accent">
+                                <span>{{ $label }}</span>
+                            </label>
+                        @endforeach
+                    </div>
+                </div>
+
+                {{-- يوم الشهر --}}
+                <div id="monthly-group" class="space-y-1 hidden">
+                    <label class="block text-xs font-black text-slate-600">يوم التمام في الشهر <span class="text-red-500">*</span></label>
+                    <input type="number" name="frequency_config[day_of_month]" value="{{ old('frequency_config.day_of_month', $template->frequency_config['day_of_month'] ?? '') }}" min="1" max="31"
+                        class="w-full px-4 py-3 rounded-xl border border-slate-200 bg-white focus:ring-2 focus:ring-accent/20 focus:border-accent outline-none"
+                        placeholder="مثال: 15">
+                    <p class="text-xs text-slate-400">أدخل رقم يوم من 1 إلى 31</p>
+                </div>
+
+                {{-- تواريخ محددة --}}
+                <div id="custom-dates-group" class="space-y-1 hidden">
+                    <label class="block text-xs font-black text-slate-600">التواريخ المحددة <span class="text-red-500">*</span></label>
+                    <input type="date" id="custom-date-input"
+                        class="w-full px-4 py-3 rounded-xl border border-slate-200 bg-white focus:ring-2 focus:ring-accent/20 focus:border-accent outline-none">
+                    <div id="selected-dates" class="flex flex-wrap gap-2 mt-2">
+                        @foreach (old('frequency_config.custom_dates', $template->frequency_config['custom_dates'] ?? []) as $date)
+                            <span class="selected-date-tag inline-flex items-center gap-1 bg-accent/10 text-accent px-3 py-1 rounded-lg text-sm font-bold">
+                                {{ $date }}
+                                <button type="button" onclick="this.parentElement.remove()" class="text-accent hover:text-red-500">&times;</button>
+                                <input type="hidden" name="frequency_config[custom_dates][]" value="{{ $date }}">
+                            </span>
+                        @endforeach
+                    </div>
+                </div>
+
+                <div class="space-y-1">
                     <label class="block text-xs font-black text-slate-600">نص التمام (Script) <span class="text-red-500">*</span></label>
                     <textarea name="script" rows="3" required
                         class="w-full px-4 py-3 rounded-xl border border-slate-200 bg-white focus:ring-2 focus:ring-accent/20 focus:border-accent outline-none">{{ old('script', $template->script) }}</textarea>
@@ -116,5 +182,55 @@
         });
 
         updateSelectedCount();
+
+        // frequency toggle
+        const freqSelect = document.getElementById('frequency-select');
+        const secondTimeGroup = document.getElementById('second-time-group');
+        const weeklyGroup = document.getElementById('weekly-group');
+        const monthlyGroup = document.getElementById('monthly-group');
+        const customDatesGroup = document.getElementById('custom-dates-group');
+
+        function toggleFrequencyFields() {
+            const val = freqSelect.value;
+            secondTimeGroup.classList.toggle('hidden', val !== 'twice_daily');
+            weeklyGroup.classList.toggle('hidden', val !== 'weekly');
+            monthlyGroup.classList.toggle('hidden', val !== 'monthly');
+            customDatesGroup.classList.toggle('hidden', val !== 'custom_dates');
+        }
+
+        freqSelect.addEventListener('change', toggleFrequencyFields);
+        toggleFrequencyFields();
+
+        // custom dates picker
+        const dateInput = document.getElementById('custom-date-input');
+        const selectedDatesContainer = document.getElementById('selected-dates');
+
+        dateInput.addEventListener('change', function () {
+            const date = this.value;
+            if (!date) return;
+
+            const existing = selectedDatesContainer.querySelectorAll('input[type="hidden"]');
+            for (let i = 0; i < existing.length; i++) {
+                if (existing[i].value === date) {
+                    this.value = '';
+                    return;
+                }
+            }
+
+            const tag = document.createElement('span');
+            tag.className = 'selected-date-tag inline-flex items-center gap-1 bg-accent/10 text-accent px-3 py-1 rounded-lg text-sm font-bold';
+            tag.innerHTML = `${date} <button type="button" onclick="this.parentElement.remove()" class="text-accent hover:text-red-500">&times;</button><input type="hidden" name="frequency_config[custom_dates][]" value="${date}">`;
+            selectedDatesContainer.appendChild(tag);
+            this.value = '';
+        });
+
+        // clear hidden fields before submit so they don't fail validation
+        document.querySelector('form').addEventListener('submit', function () {
+            const val = freqSelect.value;
+            if (val !== 'twice_daily') secondTimeGroup.querySelectorAll('input').forEach(el => el.disabled = true);
+            if (val !== 'weekly') weeklyGroup.querySelectorAll('input').forEach(el => el.disabled = true);
+            if (val !== 'monthly') monthlyGroup.querySelector('input').disabled = true;
+            if (val !== 'custom_dates') customDatesGroup.querySelectorAll('input[type="hidden"]').forEach(el => el.disabled = true);
+        });
     </script>
 @endpush

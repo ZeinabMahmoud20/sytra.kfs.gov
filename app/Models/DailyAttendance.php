@@ -15,6 +15,7 @@ class DailyAttendance extends Model
         'attendance_template_id',
         'attendance_cycle_id',
         'attendance_date',
+        'time_slot',
         'status',
         'started_at',
         'completed_at',

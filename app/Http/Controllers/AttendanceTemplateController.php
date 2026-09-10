@@ -31,11 +31,16 @@ class AttendanceTemplateController extends Controller
     {
         $validated = $request->validated();
 
+        $frequencyConfig = $validated['frequency_config'] ?? null;
+
         $template = AttendanceTemplate::create([
             'name' => $validated['name'],
             'attendance_time' => $validated['attendance_time'],
+            'second_attendance_time' => $validated['second_attendance_time'] ?? null,
             'script' => $validated['script'],
             'daily_entities_count' => $validated['daily_entities_count'],
+            'frequency' => $validated['frequency'],
+            'frequency_config' => $frequencyConfig,
             'is_active' => $validated['is_active'] ?? true,
         ]);
 
@@ -82,11 +87,16 @@ public function update(UpdateAttendanceTemplateRequest $request, AttendanceTempl
 
     $entitiesChanged = $oldEntityIds !== $newEntityIds;
 
+    $frequencyConfig = $validated['frequency_config'] ?? null;
+
     $attendanceTemplate->update([
         'name' => $validated['name'],
         'attendance_time' => $validated['attendance_time'],
+        'second_attendance_time' => $validated['second_attendance_time'] ?? null,
         'script' => $validated['script'],
         'daily_entities_count' => $validated['daily_entities_count'],
+        'frequency' => $validated['frequency'],
+        'frequency_config' => $frequencyConfig,
         'is_active' => $validated['is_active'] ?? false,
     ]);
 
