@@ -2,6 +2,7 @@
 
 namespace App\Livewire\Evaluations;
 
+use App\Models\DailyScript;
 use App\Models\Evaluation;
 use App\Models\EvaluationEntity;
 use Carbon\Carbon;
@@ -18,11 +19,43 @@ class DailyEvaluationForm extends Component
 
     public bool $isFriday = false;
 
+    public string $script = '';
+
+    public bool $editingScript = false;
+
     public function mount(): void
     {
         $this->authorize('evaluations.evaluate');
         $this->date = now()->toDateString();
+        $this->script = DailyScript::query()->value('content') ?? '';
         $this->loadDay();
+    }
+
+    public function startEditingScript(): void
+    {
+        $this->editingScript = true;
+    }
+
+    public function cancelEditingScript(): void
+    {
+        $this->editingScript = false;
+        $this->script = DailyScript::query()->value('content') ?? '';
+    }
+
+    public function saveScript(): void
+    {
+        $this->authorize('evaluations.evaluate');
+
+        $this->validate([
+            'script' => 'nullable|string',
+        ]);
+
+        $record = DailyScript::query()->first() ?? new DailyScript;
+        $record->content = $this->script;
+        $record->save();
+
+        $this->editingScript = false;
+        session()->flash('success', 'تم حفظ النص');
     }
 
     public function updatedDate(): void

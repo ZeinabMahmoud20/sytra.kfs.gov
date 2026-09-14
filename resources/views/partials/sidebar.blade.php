@@ -68,6 +68,15 @@
                         @endcan
 
                         @can('reports.view')
+                            <a href="http://127.0.0.1:8000/reports"
+                                class="flex items-center gap-3 px-4 py-2 rounded-lg transition-all duration-300 text-sm
+                                    {{ request()->is('reports') ? 'bg-white/15 text-white font-bold' : 'hover:bg-white/10 text-white/80' }}">
+                                <i class="fas fa-list w-5 text-center text-accent"></i>
+                                تقارير البلاغات
+                            </a>
+                        @endcan
+
+                        @can('reports.view')
                             <a href="{{ route('reports.monthly-stats') }}"
                                 class="flex items-center gap-3 px-4 py-2 rounded-lg transition-all duration-300 text-sm
                                     {{ request()->routeIs('reports.monthly-stats') ? 'bg-white/15 text-white font-bold' : 'hover:bg-white/10 text-white/80' }}">
@@ -85,14 +94,8 @@
                             </a>
                         @endcan
 
-                        @can('reports.monthly-stats')
-                            <a href="{{ route('reports.monthly-stats') }}"
-                                class="flex items-center gap-3 px-4 py-2 rounded-lg transition-all duration-300 text-sm
-                                    {{ request()->routeIs('reports.monthly-stats') ? 'bg-white/15 text-white font-bold' : 'hover:bg-white/10 text-white/80' }}">
-                                <i class="fas fa-chart-column w-5 text-center text-accent"></i>
-                                إحصائيات البلاغات الشهرية
-                            </a>
-                        @endcan
+
+
                     </div>
                 </div>
             @endcanany

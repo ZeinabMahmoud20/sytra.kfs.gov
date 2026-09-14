@@ -73,7 +73,7 @@
                 <div class="space-y-2">
                     <label class="block text-sm font-black text-slate-600">تاريخ البلاغ <span
                             class="text-red-500">*</span></label>
-                    <input type="date" name="REPORT_START_DATE" required
+                    <input type="text" name="REPORT_START_DATE" id="report-start-date" required
                         value="{{ old('REPORT_START_DATE', now()->format('Y-m-d')) }}" @unless($canEditDateTime)
                         readonly @endunless
                         class="w-full px-4 py-3 rounded-xl border border-slate-200 {{ $canEditDateTime ? 'bg-slate-50' : 'bg-slate-100 text-slate-400' }} focus:bg-white focus:ring-2 focus:ring-accent/20 focus:border-accent outline-none transition-all">
@@ -276,7 +276,23 @@
     </div>
 </template>
 
+@push('styles')
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/themes/dark.css">
+@endpush
+
 @push('scripts')
+<script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+<script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/ar.js"></script>
+<script>
+    flatpickr('#report-start-date', {
+        dateFormat: 'Y-m-d',
+        altInput: true,
+        altFormat: 'd/m/Y',
+        locale: 'ar',
+        maxDate: 'today'
+    });
+</script>
 <script>
     // ------------------------------------------------------------------
     // 0. رقم الهاتف: موبايل / أرضي (toggle button)

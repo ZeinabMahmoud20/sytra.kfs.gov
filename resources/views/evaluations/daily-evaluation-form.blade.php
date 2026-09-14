@@ -1,7 +1,7 @@
 <div dir="rtl" class="p-6">
     <div class="flex items-center justify-between mb-4">
         <h1 class="text-xl font-bold">تقييم الجهات اليومي</h1>
-        <input type="date" wire:model.live="date" class="border rounded-lg p-2">
+        <input type="text" wire:ignore id="eval-date-dup" class="border rounded-lg p-2" value="{{ $date }}">
     </div>
 
     @if (session('success'))

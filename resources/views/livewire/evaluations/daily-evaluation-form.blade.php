@@ -1,7 +1,26 @@
 <div dir="rtl" class="p-6">
     <div class="flex items-center justify-between mb-4">
         <h1 class="text-xl font-bold">تقييم الجهات اليومي</h1>
-        <input type="date" wire:model.live="date" class="border rounded-lg p-2">
+        <input type="text" wire:ignore id="eval-date" class="border rounded-lg p-2" value="{{ $date }}">
+    </div>
+
+    <div class="bg-white shadow rounded-lg p-4 mb-4 border border-dashed border-slate-300">
+        <div class="flex items-center justify-between mb-2">
+            <h2 class="font-semibold text-sm text-slate-700">سكريبت اليوم</h2>
+            @unless ($editingScript)
+                <button wire:click="startEditingScript" class="px-3 py-1 rounded-lg text-xs border hover:bg-blue-50">تعديل</button>
+            @endunless
+        </div>
+
+        @if ($editingScript)
+            <textarea wire:model="script" rows="2" class="w-full border rounded-lg p-2 text-sm" placeholder="اكتب السكريبت هنا..."></textarea>
+            <div class="flex gap-2 mt-2">
+                <button wire:click="saveScript" class="px-4 py-1.5 rounded-lg text-xs bg-blue-600 text-white hover:bg-blue-700">حفظ</button>
+                <button wire:click="cancelEditingScript" class="px-4 py-1.5 rounded-lg text-xs border hover:bg-gray-50">إلغاء</button>
+            </div>
+        @else
+            <p class="text-sm text-slate-800 whitespace-pre-wrap">{{ $script ?: 'لا يوجد سكريبت بعد.' }}</p>
+        @endif
     </div>
 
     @if (session('success'))
