@@ -92,9 +92,23 @@ class ContactGuideController extends Controller
         $failuresCount = count($import->failures());
 
         if ($failuresCount > 0) {
+            $details = [];
+            foreach ($import->failures() as $i => $failure) {
+                $row = $failure->row();
+                $errors = is_array($failure->errors()) ? implode(', ', $failure->errors()) : $failure->errors();
+                $values = is_array($failure->values()) ? $failure->values() : $failure->values()->toArray();
+                $details[] = "صف #{$row} | الأعمدة: " . json_encode($values, JSON_UNESCAPED_UNICODE) . " | الأخطاء: {$errors}";
+                if ($i >= 19) {
+                    $details[] = "... و " . ($failuresCount - 20) . " خطأ إضافي";
+                    break;
+                }
+            }
+            \Log::warning("contact-guides import failures ({$failuresCount}):", $details);
+
             return redirect()
                 ->route('contact-guides.index')
-                ->with('warning', "تم رفع دليل الاتصال مع تجاهل {$failuresCount} صف بسبب أخطاء في البيانات");
+                ->with('warning', "تم رفع دليل الاتصال مع تجاهل {$failuresCount} صف بسبب أخطاء في البيانات")
+                ->with('failureDetails', $details);
         }
 
         return redirect()

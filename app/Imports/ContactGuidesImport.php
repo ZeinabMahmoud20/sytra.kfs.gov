@@ -32,9 +32,9 @@ class ContactGuidesImport implements ToModel, WithHeadingRow, WithValidation, Sk
         return new ContactGuide([
             'department_name' => $name,
             'manager_name' => $row['manager_name'] ?? null,
-            'phone_number' => $row['phone_number'] ?? null,
-            'landline_number' => $row['landline_number'] ?? null,
-            'additional_phone' => $row['additional_phone'] ?? null,
+            'phone_number' => isset($row['phone_number']) ? (string) $row['phone_number'] : null,
+            'landline_number' => isset($row['landline_number']) ? (string) $row['landline_number'] : null,
+            'additional_phone' => isset($row['additional_phone']) ? (string) $row['additional_phone'] : null,
         ]);
     }
 
@@ -52,11 +52,11 @@ class ContactGuidesImport implements ToModel, WithHeadingRow, WithValidation, Sk
     public function rules(): array
     {
         return [
-            'department_name' => ['required', 'string', 'max:255'],
-            'manager_name' => ['nullable', 'string', 'max:255'],
-            'phone_number' => ['nullable', 'string', 'max:50'],
-            'landline_number' => ['nullable', 'string', 'max:50'],
-            'additional_phone' => ['nullable', 'string', 'max:50'],
+            'department_name' => ['required', 'string'],
+            'manager_name' => ['nullable', 'string'],
+            'phone_number' => ['nullable'],
+            'landline_number' => ['nullable'],
+            'additional_phone' => ['nullable'],
         ];
     }
 }

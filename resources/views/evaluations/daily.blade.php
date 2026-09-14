@@ -21,7 +21,7 @@
             locale: 'ar',
             defaultDate: document.getElementById('eval-date').value,
             onChange: function (selectedDates, dateStr) {
-                @this.set('date', dateStr);
+                Livewire.first().set('date', dateStr);
             }
         });
     });

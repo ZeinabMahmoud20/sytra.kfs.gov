@@ -31,6 +31,13 @@
     @if (session('warning'))
         <div class="mb-6 p-4 bg-amber-50 border border-amber-200 rounded-xl text-amber-700 text-sm font-bold">
             <i class="fas fa-exclamation-triangle"></i> {{ session('warning') }}
+            @if (session('failureDetails'))
+                <div class="mt-3 text-xs font-normal max-h-48 overflow-y-auto bg-white rounded-lg p-3 border border-amber-100">
+                    @foreach (session('failureDetails') as $detail)
+                        <div class="py-1 border-b border-amber-50 last:border-0" dir="auto">{{ $detail }}</div>
+                    @endforeach
+                </div>
+            @endif
         </div>
     @endif
 

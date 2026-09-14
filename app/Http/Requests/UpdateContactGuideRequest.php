@@ -17,10 +17,9 @@ class UpdateContactGuideRequest extends FormRequest
             'department_name' => [
                 'required',
                 'string',
-                'max:255',
                 'unique:contact_guides,department_name,' . $this->route('contactGuide')->id,
             ],
-            'manager_name' => ['nullable', 'string', 'max:255'],
+            'manager_name' => ['nullable', 'string'],
             'phone_number' => ['nullable', 'string', 'max:50'],
             'landline_number' => ['nullable', 'string', 'max:50'],
             'additional_phone' => ['nullable', 'string', 'max:50'],
