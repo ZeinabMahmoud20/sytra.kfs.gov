@@ -68,9 +68,9 @@
                         @endcan
 
                         @can('reports.view')
-                            <a href="http://127.0.0.1:8000/reports"
+                            <a href="{{ route('reports.index') }}"
                                 class="flex items-center gap-3 px-4 py-2 rounded-lg transition-all duration-300 text-sm
-                                    {{ request()->is('reports') ? 'bg-white/15 text-white font-bold' : 'hover:bg-white/10 text-white/80' }}">
+                                    {{ request()->routeIs('reports.index') ? 'bg-white/15 text-white font-bold' : 'hover:bg-white/10 text-white/80' }}">
                                 <i class="fas fa-list w-5 text-center text-accent"></i>
                                 تقارير البلاغات
                             </a>
