@@ -101,7 +101,7 @@
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div class="space-y-2">
                         <label class="block text-sm font-black text-slate-600">تاريخ البلاغ <span class="text-red-500">*</span></label>
-                        <input type="date" name="REPORT_START_DATE" required
+                        <input type="text" name="REPORT_START_DATE" id="report-start-date" required
                             value="{{ old('REPORT_START_DATE', \Illuminate\Support\Carbon::parse($report->REPORT_START_DATE)->format('Y-m-d')) }}"
                             @unless($canEditDateTime && !$isLocked) readonly @endunless
                             @disabled($isLocked)
@@ -374,7 +374,23 @@
 </template>
 
 @if (!$isLocked)
+@push('styles')
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/themes/dark.css">
+@endpush
+
 @push('scripts')
+<script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+<script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/ar.js"></script>
+<script>
+    flatpickr('#report-start-date', {
+        dateFormat: 'Y-m-d',
+        altInput: true,
+        altFormat: 'd/m/Y',
+        locale: 'ar',
+        maxDate: 'today'
+    });
+</script>
 <script>
     // ------------------------------------------------------------------
     // 0. رقم الهاتف: موبايل / أرضي

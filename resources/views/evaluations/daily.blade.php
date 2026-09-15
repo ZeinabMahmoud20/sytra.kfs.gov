@@ -1,5 +1,8 @@
 @extends('layouts.app')
 
+@section('title', 'التقييم اليومي للجهات')
+@section('page-title', 'التقييم اليومي للجهات')
+
 @section('content')
     @livewire('evaluations.daily-evaluation-form')
 @endsection

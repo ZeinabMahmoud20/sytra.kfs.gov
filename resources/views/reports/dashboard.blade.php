@@ -13,12 +13,12 @@
             <input type="hidden" name="village_center" value="{{ $villageCenter }}">
             <div>
                 <label class="block text-slate-400 font-bold mb-2 text-sm">من تاريخ</label>
-                <input type="date" name="from" value="{{ $from }}"
+                <input type="text" name="from" id="dash-date-from" value="{{ $from }}"
                     class="w-full rounded-2xl border-slate-200 focus:border-accent focus:ring-accent">
             </div>
             <div>
                 <label class="block text-slate-400 font-bold mb-2 text-sm">إلى تاريخ</label>
-                <input type="date" name="to" value="{{ $to }}"
+                <input type="text" name="to" id="dash-date-to" value="{{ $to }}"
                     class="w-full rounded-2xl border-slate-200 focus:border-accent focus:ring-accent">
             </div>
             <div>
@@ -260,7 +260,28 @@
 </div>
 @endsection
 
+@push('styles')
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/themes/dark.css">
+@endpush
+
 @push('scripts')
+<script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+<script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/ar.js"></script>
+<script>
+    flatpickr('#dash-date-from', {
+        dateFormat: 'Y-m-d',
+        altInput: true,
+        altFormat: 'd/m/Y',
+        locale: 'ar'
+    });
+    flatpickr('#dash-date-to', {
+        dateFormat: 'Y-m-d',
+        altInput: true,
+        altFormat: 'd/m/Y',
+        locale: 'ar'
+    });
+</script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
 <script>
     document.addEventListener('DOMContentLoaded', function () {

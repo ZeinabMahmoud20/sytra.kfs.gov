@@ -74,7 +74,7 @@
 
                     <div class="space-y-2">
                         <label class="block text-sm font-bold text-slate-500">تاريخ الورود <span class="text-red-500">*</span></label>
-                        <input type="date" name="received_date" required
+                        <input type="text" name="received_date" id="task-received-date" required
                             value="{{ $task->received_date->format('Y-m-d') }}"
                             class="w-full px-4 py-3 rounded-xl border border-slate-200 bg-white focus:ring-2 focus:ring-accent/20 focus:border-accent outline-none transition-all">
                     </div>
@@ -115,13 +115,13 @@
 
                     <div class="space-y-2">
                         <label class="block text-sm font-black text-slate-600">الموعد النهائي <span class="text-red-500">*</span></label>
-                        <input type="date" name="deadline" required value="{{ $task->deadline->format('Y-m-d') }}"
+                        <input type="text" name="deadline" id="task-deadline" required value="{{ $task->deadline->format('Y-m-d') }}"
                             class="w-full px-4 py-3 rounded-xl border border-slate-200 bg-slate-50 focus:bg-white focus:ring-2 focus:ring-accent/20 focus:border-accent outline-none transition-all">
                     </div>
 
                     <div class="space-y-2">
                         <label class="block text-sm font-black text-slate-600">موعد الرد</label>
-                        <input type="date" name="response_date" value="{{ optional($task->response_date)->format('Y-m-d') }}"
+                        <input type="text" name="response_date" id="task-response-date" value="{{ optional($task->response_date)->format('Y-m-d') }}"
                             class="w-full px-4 py-3 rounded-xl border border-slate-200 bg-slate-50 focus:bg-white focus:ring-2 focus:ring-accent/20 focus:border-accent outline-none transition-all">
                     </div>
 
@@ -203,3 +203,33 @@
     </div>
 </div>
 @endsection
+
+@push('styles')
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/themes/dark.css">
+@endpush
+
+@push('scripts')
+<script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+<script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/ar.js"></script>
+<script>
+    flatpickr('#task-received-date', {
+        dateFormat: 'Y-m-d',
+        altInput: true,
+        altFormat: 'd/m/Y',
+        locale: 'ar'
+    });
+    flatpickr('#task-deadline', {
+        dateFormat: 'Y-m-d',
+        altInput: true,
+        altFormat: 'd/m/Y',
+        locale: 'ar'
+    });
+    flatpickr('#task-response-date', {
+        dateFormat: 'Y-m-d',
+        altInput: true,
+        altFormat: 'd/m/Y',
+        locale: 'ar'
+    });
+</script>
+@endpush

@@ -105,12 +105,12 @@
         </div>
         <div class="space-y-1">
             <label class="text-xs font-bold text-slate-500">من تاريخ</label>
-            <input type="date" name="date_from" value="{{ request('date_from') }}"
+            <input type="text" name="date_from" id="filter-date-from" value="{{ request('date_from') }}"
                 class="w-full px-3 py-2 rounded-lg border border-slate-200 text-sm focus:ring-2 focus:ring-accent/20 focus:border-accent outline-none">
         </div>
         <div class="space-y-1">
             <label class="text-xs font-bold text-slate-500">إلى تاريخ</label>
-            <input type="date" name="date_to" value="{{ request('date_to') }}"
+            <input type="text" name="date_to" id="filter-date-to" value="{{ request('date_to') }}"
                 class="w-full px-3 py-2 rounded-lg border border-slate-200 text-sm focus:ring-2 focus:ring-accent/20 focus:border-accent outline-none">
         </div>
     </div>
@@ -266,7 +266,28 @@
 </div>
 @endsection
 
+@push('styles')
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/themes/dark.css">
+@endpush
+
 @push('scripts')
+<script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+<script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/ar.js"></script>
+<script>
+    flatpickr('#filter-date-from', {
+        dateFormat: 'Y-m-d',
+        altInput: true,
+        altFormat: 'd/m/Y',
+        locale: 'ar'
+    });
+    flatpickr('#filter-date-to', {
+        dateFormat: 'Y-m-d',
+        altInput: true,
+        altFormat: 'd/m/Y',
+        locale: 'ar'
+    });
+</script>
 <script>
     // ------------------------------------------------------------------
     // طي/فتح قسم الفلاتر - مقفول افتراضياً

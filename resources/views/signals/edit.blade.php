@@ -61,7 +61,7 @@
         <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div class="space-y-1">
                 <label class="block text-xs font-black text-slate-600">تاريخ الإرسال <span class="text-red-500">*</span></label>
-                <input type="date" class="signal-date w-full px-4 py-3 rounded-xl border border-slate-200 bg-white focus:ring-2 focus:ring-accent/20 focus:border-accent outline-none">
+                <input type="text" class="signal-date w-full px-4 py-3 rounded-xl border border-slate-200 bg-white focus:ring-2 focus:ring-accent/20 focus:border-accent outline-none">
             </div>
             <div class="space-y-1">
                 <label class="block text-xs font-black text-slate-600">وقت الإرسال <span class="text-red-500">*</span></label>
@@ -129,7 +129,14 @@
     </div>
 </template>
 
+@push('styles')
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/themes/dark.css">
+@endpush
+
 @push('scripts')
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/ar.js"></script>
     <script>
         let cardIndex = 0;
 
@@ -198,6 +205,13 @@
             });
 
             document.getElementById('signal-cards').appendChild(clone);
+
+            flatpickr(dateInput, {
+                dateFormat: 'Y-m-d',
+                altInput: true,
+                altFormat: 'd/m/Y',
+                locale: 'ar'
+            });
         }
 
         function applyAuthorityState(btn, state) {
