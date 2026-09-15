@@ -82,7 +82,7 @@ class DailyEvaluationForm extends Component
         $this->authorize('evaluations.evaluate');
 
         if ($this->isFriday) {
-            $this->addError('date', 'مفيش تقييم يوم الجمعة');
+            $this->addError('date', 'لا يوجد  تقييم يوم الجمعة');
             return;
         }
 
@@ -92,7 +92,7 @@ class DailyEvaluationForm extends Component
             ->exists();
 
         if ($already) {
-            session()->flash('error', 'الجهة دي اتقيّمت بالفعل النهاردة، أول تقييم بس هو اللي يتسجل.');
+            session()->flash('error', 'تم تقييم هذه الجهة بالفعل من قبل، يتم تسجيل أول تقييم فقط ');
             return;
         }
 

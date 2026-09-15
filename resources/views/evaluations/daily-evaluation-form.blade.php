@@ -12,7 +12,7 @@
     @endif
 
     @if ($isFriday)
-        <div class="bg-yellow-100 text-yellow-800 p-4 rounded-lg">مفيش تقييم يوم الجمعة 🙂</div>
+        <div class="bg-yellow-100 text-yellow-800 p-4 rounded-lg">لا يوجد  تقييم يوم الجمعة 🙂</div>
     @else
         <div class="bg-white shadow rounded-lg overflow-hidden">
             <table class="w-full text-sm">

@@ -47,7 +47,7 @@
                                     </a>
                                     @if ($user->id !== auth()->id())
                                         <form method="POST" action="{{ route('admin.users.destroy', $user) }}"
-                                            onsubmit="return confirm('متأكد من حذف هذا المستخدم؟')">
+                                            onsubmit="return confirm('هل انت متأكد من حذف هذا المستخدم؟')">
                                             @csrf
                                             @method('DELETE')
                                             <button type="submit" class="w-8 h-8 flex items-center justify-center rounded-lg bg-red-50 text-red-600 hover:bg-red-100">

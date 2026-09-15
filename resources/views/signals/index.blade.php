@@ -116,7 +116,7 @@
                                     @endcan
                                     @can('signals.delete')
                                         <form method="POST" action="{{ route('signals.destroy', $unit->MAIN_SEND_ID) }}"
-                                            onsubmit="return confirm('متأكد إنك عايز تحذف هذه الإشارة؟ هيتم حذف كل الردود المرتبطة بيها كمان.')">
+                                            onsubmit="return confirm('هل انت متأكد من حذف هذه الإشارة؟ سيتم حذف كل الردود المرتبطة بها .')">
                                             @csrf
                                             @method('DELETE')
                                             <button type="submit" title="حذف"

@@ -23,7 +23,7 @@
                                 title="{{ $permission->name }}">
                                 <span class="text-sm font-bold text-slate-700">{{ permission_label($permission->name) }}</span>
                                 <form method="POST" action="{{ route('admin.permissions.destroy', $permission) }}"
-                                    onsubmit="return confirm('متأكد من حذف الصلاحية دي؟ هتتشال من كل الأدوار المرتبطة بيها.')">
+                                    onsubmit="return confirm(' هل انت  من حذف هذه الصلاحية؟  سيتم حذف  كل الأدوار المرتبطة بها.')">
                                     @csrf
                                     @method('DELETE')
                                     <button type="submit" class="text-red-400 hover:text-red-600 text-xs">

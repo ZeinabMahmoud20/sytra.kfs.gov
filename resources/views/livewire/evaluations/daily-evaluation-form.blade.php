@@ -80,8 +80,8 @@
     @if ($isFriday)
         <div class="bg-amber-50 border border-amber-200 rounded-3xl p-12 text-center">
             <i class="fas fa-moon text-5xl text-amber-400 mb-4"></i>
-            <h3 class="text-xl font-black text-amber-700 mb-2">مفيش تقييم يوم الجمعة 🙂</h3>
-            <p class="text-amber-600 text-sm">يوم الجمعة إجازة رسمية، التقييم بيتوقف.</p>
+            <h3 class="text-xl font-black text-amber-700 mb-2">لا يوجد  تقييم يوم الجمعة 🙂</h3>
+            <p class="text-amber-600 text-sm"> الجمعة إجازة رسمية  .</p>
         </div>
     @else
         {{-- جدول التقييم --}}
