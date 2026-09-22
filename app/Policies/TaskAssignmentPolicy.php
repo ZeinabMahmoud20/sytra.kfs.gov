@@ -34,7 +34,7 @@ class TaskAssignmentPolicy
     /** إضافة تكليف جديد - مسؤول التكليفات والإدارة العليا فقط */
     public function create(User $user): bool
     {
-        return in_array($user->role, ['admin', 'assignment_manager', 'director']);
+        return in_array($user->role, ['admin', 'assignment_manager', 'director','staff'], );
     }
 
     /**

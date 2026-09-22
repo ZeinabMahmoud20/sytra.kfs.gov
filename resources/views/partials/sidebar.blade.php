@@ -418,14 +418,69 @@
                 </div>
             @endcanany
 
-            {{-- 9) الإعدادات --}}
-            <a href="{{ Route::has('profile.settings') ? route('profile.settings') : '#' }}"
-                class="flex items-center gap-4 px-4 py-3 rounded-xl transition-all duration-300 group
-                    {{ request()->routeIs('profile.settings') ? 'bg-accent text-white shadow-lg' : 'hover:bg-white/10' }}">
-                <i class="fas fa-cog w-6 text-center
-                    {{ request()->routeIs('profile.settings') ? '' : 'text-accent group-hover:scale-110 transition-transform' }}"></i>
-                <span class="font-medium text-lg">الإعدادات</span>
-            </a>
+            {{-- 9) الإعدادات (أنواع البلاغات وجهات البلاغ والإشارة والإخطار ومضمون الإشارة) --}}
+            @canany(['reports.view', 'signals.view'])
+                @php
+                    $settingsRoutes = [
+                        'settings.reporting-types.*',
+                        'settings.signal-authorities.*',
+                        'settings.notified-auths.*',
+                        'settings.signal-contents.*',
+                    ];
+                    $isSettingsActive = request()->routeIs($settingsRoutes);
+                @endphp
+
+                <div>
+                    <button type="button" onclick="document.getElementById('settings-submenu').classList.toggle('hidden'); this.querySelector('.settings-chevron').classList.toggle('rotate-180')"
+                        class="w-full flex items-center justify-between gap-4 px-4 py-3 rounded-xl transition-all duration-300 group
+                            {{ $isSettingsActive ? 'bg-accent text-white shadow-lg' : 'hover:bg-white/10' }}">
+                        <span class="flex items-center gap-4">
+                            <i class="fas fa-cog w-6 text-center
+                                {{ $isSettingsActive ? '' : 'text-accent group-hover:scale-110 transition-transform' }}"></i>
+                            <span class="font-medium text-lg">الإعدادات</span>
+                        </span>
+                        <i class="fas fa-chevron-down text-sm settings-chevron transition-transform duration-300 {{ $isSettingsActive ? 'rotate-180' : '' }}"></i>
+                    </button>
+
+                    <div id="settings-submenu" class="{{ $isSettingsActive ? '' : 'hidden' }} mt-1 mr-4 space-y-1 border-r-2 border-white/10 pr-4">
+                        @can('reports.view')
+                            <a href="{{ route('settings.reporting-types.index') }}"
+                                class="flex items-center gap-3 px-4 py-2 rounded-lg transition-all duration-300 text-sm
+                                    {{ request()->routeIs('settings.reporting-types.*') ? 'bg-white/15 text-white font-bold' : 'hover:bg-white/10 text-white/80' }}">
+                                <i class="fas fa-file-circle-plus w-5 text-center text-accent"></i>
+                                أنواع البلاغات وجهات البلاغ
+                            </a>
+                        @endcan
+
+                        @can('signals.view')
+                            <a href="{{ route('settings.signal-authorities.index') }}"
+                                class="flex items-center gap-3 px-4 py-2 rounded-lg transition-all duration-300 text-sm
+                                    {{ request()->routeIs('settings.signal-authorities.*') ? 'bg-white/15 text-white font-bold' : 'hover:bg-white/10 text-white/80' }}">
+                                <i class="fas fa-broadcast-tower w-5 text-center text-accent"></i>
+                                جهات الإشارة
+                            </a>
+                        @endcan
+
+                        @can('reports.view')
+                            <a href="{{ route('settings.notified-auths.index') }}"
+                                class="flex items-center gap-3 px-4 py-2 rounded-lg transition-all duration-300 text-sm
+                                    {{ request()->routeIs('settings.notified-auths.*') ? 'bg-white/15 text-white font-bold' : 'hover:bg-white/10 text-white/80' }}">
+                                <i class="fas fa-bell w-5 text-center text-accent"></i>
+                                جهات الإخطار
+                            </a>
+                        @endcan
+
+                        @can('signals.view')
+                            <a href="{{ route('settings.signal-contents.index') }}"
+                                class="flex items-center gap-3 px-4 py-2 rounded-lg transition-all duration-300 text-sm
+                                    {{ request()->routeIs('settings.signal-contents.*') ? 'bg-white/15 text-white font-bold' : 'hover:bg-white/10 text-white/80' }}">
+                                <i class="fas fa-file-signature w-5 text-center text-accent"></i>
+                                مضمون الإشارة
+                            </a>
+                        @endcan
+                    </div>
+                </div>
+            @endcanany
 
         </nav>
 

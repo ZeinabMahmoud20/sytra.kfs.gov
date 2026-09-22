@@ -12,7 +12,11 @@ use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\EntityAttendanceDashboardController;
 use App\Http\Controllers\EntityController;
 use App\Http\Controllers\MonthlyReportStatsController;
+use App\Http\Controllers\NotifiedAuthController;
 use App\Http\Controllers\ReportController;
+use App\Http\Controllers\ReportingTypeController;
+use App\Http\Controllers\SignalAuthorityController;
+use App\Http\Controllers\SignalContentController;
 use App\Http\Controllers\ReportDashboardController;
 use App\Http\Controllers\SignalController;
 use App\Http\Controllers\TaskAssignmentController;
@@ -262,6 +266,75 @@ Route::middleware(['auth'])->group(function () {
     });
     Route::middleware('can:tasks.delete')->group(function () {
         Route::delete('task-entities/{taskEntity}', [TaskEntityController::class, 'destroy'])->name('task-entities.destroy');
+    });
+});
+
+
+// ===== إعدادات البلاغات والإشارات (أنواع البلاغات وجهات البلاغ والإخطار والإشارة) =====
+Route::prefix('settings')->name('settings.')->middleware(['auth'])->group(function () {
+
+    // أنواع البلاغات (REPORTING_TYPES) - جهة البلاغ موجودة في نفس الجدول (AUTHORITY)
+    Route::middleware('can:reports.view')->group(function () {
+        Route::get('reporting-types', [ReportingTypeController::class, 'index'])->name('reporting-types.index');
+    });
+    Route::middleware('can:reports.create')->group(function () {
+        Route::get('reporting-types/create', [ReportingTypeController::class, 'create'])->name('reporting-types.create');
+        Route::post('reporting-types', [ReportingTypeController::class, 'store'])->name('reporting-types.store');
+    });
+    Route::middleware('can:reports.edit')->group(function () {
+        Route::get('reporting-types/{reportingType}/edit', [ReportingTypeController::class, 'edit'])->name('reporting-types.edit');
+        Route::put('reporting-types/{reportingType}', [ReportingTypeController::class, 'update'])->name('reporting-types.update');
+    });
+    Route::middleware('can:reports.delete')->group(function () {
+        Route::delete('reporting-types/{reportingType}', [ReportingTypeController::class, 'destroy'])->name('reporting-types.destroy');
+    });
+
+    // جهات الإشارة (SIGNAL_AUTHORITY)
+    Route::middleware('can:signals.view')->group(function () {
+        Route::get('signal-authorities', [SignalAuthorityController::class, 'index'])->name('signal-authorities.index');
+    });
+    Route::middleware('can:signals.create')->group(function () {
+        Route::get('signal-authorities/create', [SignalAuthorityController::class, 'create'])->name('signal-authorities.create');
+        Route::post('signal-authorities', [SignalAuthorityController::class, 'store'])->name('signal-authorities.store');
+    });
+    Route::middleware('can:signals.edit')->group(function () {
+        Route::get('signal-authorities/{signalAuthority}/edit', [SignalAuthorityController::class, 'edit'])->name('signal-authorities.edit');
+        Route::put('signal-authorities/{signalAuthority}', [SignalAuthorityController::class, 'update'])->name('signal-authorities.update');
+    });
+    Route::middleware('can:signals.delete')->group(function () {
+        Route::delete('signal-authorities/{signalAuthority}', [SignalAuthorityController::class, 'destroy'])->name('signal-authorities.destroy');
+    });
+
+    // جهات الإخطار (NotifiedAuthTBL)
+    Route::middleware('can:reports.view')->group(function () {
+        Route::get('notified-auths', [NotifiedAuthController::class, 'index'])->name('notified-auths.index');
+    });
+    Route::middleware('can:reports.create')->group(function () {
+        Route::get('notified-auths/create', [NotifiedAuthController::class, 'create'])->name('notified-auths.create');
+        Route::post('notified-auths', [NotifiedAuthController::class, 'store'])->name('notified-auths.store');
+    });
+    Route::middleware('can:reports.edit')->group(function () {
+        Route::get('notified-auths/{notifiedAuth}/edit', [NotifiedAuthController::class, 'edit'])->name('notified-auths.edit');
+        Route::put('notified-auths/{notifiedAuth}', [NotifiedAuthController::class, 'update'])->name('notified-auths.update');
+    });
+    Route::middleware('can:reports.delete')->group(function () {
+        Route::delete('notified-auths/{notifiedAuth}', [NotifiedAuthController::class, 'destroy'])->name('notified-auths.destroy');
+    });
+
+    // مضمون الإشارة (SIGNAL_CONTENT)
+    Route::middleware('can:signals.view')->group(function () {
+        Route::get('signal-contents', [SignalContentController::class, 'index'])->name('signal-contents.index');
+    });
+    Route::middleware('can:signals.create')->group(function () {
+        Route::get('signal-contents/create', [SignalContentController::class, 'create'])->name('signal-contents.create');
+        Route::post('signal-contents', [SignalContentController::class, 'store'])->name('signal-contents.store');
+    });
+    Route::middleware('can:signals.edit')->group(function () {
+        Route::get('signal-contents/{signalContent}/edit', [SignalContentController::class, 'edit'])->name('signal-contents.edit');
+        Route::put('signal-contents/{signalContent}', [SignalContentController::class, 'update'])->name('signal-contents.update');
+    });
+    Route::middleware('can:signals.delete')->group(function () {
+        Route::delete('signal-contents/{signalContent}', [SignalContentController::class, 'destroy'])->name('signal-contents.destroy');
     });
 });
 
