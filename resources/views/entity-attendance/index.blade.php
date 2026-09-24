@@ -62,7 +62,7 @@
                 <i class="fas fa-clipboard-check"></i>
             </div>
             <div>
-                <p class="text-slate-400 font-bold text-sm">إجمالي مرات التم</p>
+                <p class="text-slate-400 font-bold text-sm">عدد مرات ظهور التمام</p>
                 <h4 class="text-2xl font-black text-primary">{{ $totalAppearances }}</h4>
             </div>
         </div>

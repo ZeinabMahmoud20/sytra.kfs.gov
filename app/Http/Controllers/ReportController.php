@@ -118,6 +118,12 @@ class ReportController extends Controller
 
         $report->load('lockedByUser');
 
+        $notifiedAuthorities = NotifiedAuth::orderBy('Notified_Auth')->pluck('Notified_Auth');
+        $selectedAuthorities = $report->reportAuths()->pluck('AUTHORITY_ID')->toArray();
+
+        // الجهات المحددة (المُعلّمة) أولاً ثم الباقي أبجدياً
+        $notifiedAuthorities = $notifiedAuthorities->sortByDesc(fn ($authority) => in_array($authority, $selectedAuthorities));
+
         return view('reports.edit', [
             'report' => $report,
             'isLocked' => $isLocked,
@@ -128,8 +134,8 @@ class ReportController extends Controller
             'cities' => City::orderBy('CITY_NAME')->get(),
             'villages' => Village::where('CITY_ID', $report->CITY)->orderBy('VILLAGE_NAME')->get(),
             'statuses' => $this->statuses,
-            'notifiedAuthorities' => NotifiedAuth::orderBy('Notified_Auth')->pluck('Notified_Auth'),
-            'selectedAuthorities' => $report->reportAuths()->pluck('AUTHORITY_ID')->toArray(),
+            'notifiedAuthorities' => $notifiedAuthorities,
+            'selectedAuthorities' => $selectedAuthorities,
         ]);
     }
 
@@ -427,10 +433,16 @@ class ReportController extends Controller
 
     public function create()
     {
+        $notifiedAuthorities = NotifiedAuth::orderBy('Notified_Auth')->pluck('Notified_Auth');
+        $selectedAuthorities = old('notified_authorities', []);
+
+        // الجهات المحددة (المُعلّمة) أولاً ثم الباقي أبجدياً
+        $notifiedAuthorities = $notifiedAuthorities->sortByDesc(fn ($authority) => in_array($authority, $selectedAuthorities));
+
         return view('reports.create', [
             'authorities' => ReportingType::where('IS_INTERNET', false)->whereNotNull('AUTHORITY')->distinct()->pluck('AUTHORITY'),
             'cities' => City::orderBy('CITY_NAME')->get(),
-            'notifiedAuthorities' => NotifiedAuth::orderBy('Notified_Auth')->pluck('Notified_Auth'),
+            'notifiedAuthorities' => $notifiedAuthorities,
             'nextRegisterNumber' => $this->buildNextRegisterNumber(),
             'canEditDateTime' => auth()->user()->hasRole('مشرف عام'),
         ]);

@@ -171,10 +171,12 @@
         <table class="w-full text-right whitespace-nowrap">
             <thead class="bg-slate-50 text-slate-500 text-sm">
                 <tr>
-                    <th class="px-4 py-4 font-bold">الرقم القومي</th>
+
                     <th class="px-4 py-4 font-bold">رقم قيد البلاغ</th>
+                    <th class="px-4 py-4 font-bold text-center">إجراءات</th>
                     <th class="px-4 py-4 font-bold">متلقي البلاغ</th>
                     <th class="px-4 py-4 font-bold">اسم المبلغ</th>
+                    <th class="px-4 py-4 font-bold">الرقم القومي</th>
                     <th class="px-4 py-4 font-bold">جهة البلاغ</th>
                     <th class="px-4 py-4 font-bold">نوع البلاغ</th>
                     <th class="px-4 py-4 font-bold">المركز</th>
@@ -187,7 +189,7 @@
                     <th class="px-4 py-4 font-bold">تاريخ انتهاء البلاغ</th>
                     <th class="px-4 py-4 font-bold">وقت انتهاء البلاغ</th>
                     <th class="px-4 py-4 font-bold">رقم تليفون</th>
-                    <th class="px-4 py-4 font-bold text-center">إجراءات</th>
+                    
                 </tr>
             </thead>
             <tbody class="divide-y divide-slate-100">
@@ -201,27 +203,8 @@
                 };
                 @endphp
                 <tr class="hover:bg-slate-50 transition-colors">
-                    <td class="px-4 py-4 text-slate-500">{{ $report->REPORTER_SSN }}</td>
                     <td class="px-4 py-4 font-bold text-primary">{{ $report->REPORT_REGISTER_NUMBER }}</td>
-                    <td class="px-4 py-4 text-slate-500">{{ $report->user->name ?? 'online' }}</td>
-                    <td class="px-4 py-4">{{ $report->REPORTER_NAME }}</td>
-                    <td class="px-4 py-4 text-slate-500">{{ $report->REPORTING_Auth ?? optional($report->reportingType)->AUTHORITY }}</td>
-                    <td class="px-4 py-4 font-semibold">{{ $report->reportingType->REPORT_SORT ?? '-' }}</td>
-                    <td class="px-4 py-4 text-slate-500">{{ $report->city->CITY_NAME ?? '-' }}</td>
-                    <td class="px-4 py-4 text-slate-500">{{ $report->village->VILLAGE_NAME ?? '-' }}</td>
-                    <td class="px-4 py-4 text-slate-500">{{ $report->REPORT_START_DATE }}</td>
-                    <td class="px-4 py-4 text-slate-500">{{ $report->REPORT_START_TIME }}</td>
-                    <td class="px-4 py-4 text-center">{{ $report->INFECTED_NUM ?? 0 }}</td>
-                    <td class="px-4 py-4 text-center">{{ $report->Deceased_Num ?? 0 }}</td>
-                    <td class="px-4 py-4 text-center">
-                        <span class="px-3 py-1 rounded-full text-sm font-black {{ $statusClasses }}">
-                            {{ $report->REQUEST_STATUS }}
-                        </span>
-                    </td>
-                    <td class="px-4 py-4 text-slate-500">{{ $report->REPORT_END_DATE }}</td>
-                    <td class="px-4 py-4 text-slate-500">{{ $report->REPORT_END_TIME }}</td>
-                    <td class="px-4 py-4 text-slate-500">{{ $report->REPORT_FOLLOWUP_NUMBER }}</td>
-                    <td class="px-4 py-4">
+                                        <td class="px-4 py-4">
                         <div class="flex items-center justify-center gap-2">
                             <a href="{{ route('reports.show', $report) }}" title="عرض"
                                 class="w-8 h-8 flex items-center justify-center rounded-lg bg-blue-50 text-blue-600 hover:bg-blue-100">
@@ -249,7 +232,27 @@
                                 </button>
                             </form>
                         </div>
+                    </td
+                    <td class="px-4 py-4 text-slate-500">{{ $report->user->name ?? 'online' }}</td>
+                    <td class="px-4 py-4">{{ $report->REPORTER_NAME }}</td>
+                    <td class="px-4 py-4 text-slate-500">{{ $report->REPORTER_SSN }}</td>
+                    <td class="px-4 py-4 text-slate-500">{{ $report->REPORTING_Auth ?? optional($report->reportingType)->AUTHORITY }}</td>
+                    <td class="px-4 py-4 font-semibold">{{ $report->reportingType->REPORT_SORT ?? '-' }}</td>
+                    <td class="px-4 py-4 text-slate-500">{{ $report->city->CITY_NAME ?? '-' }}</td>
+                    <td class="px-4 py-4 text-slate-500">{{ $report->village->VILLAGE_NAME ?? '-' }}</td>
+                    <td class="px-4 py-4 text-slate-500">{{ $report->REPORT_START_DATE }}</td>
+                    <td class="px-4 py-4 text-slate-500">{{ $report->REPORT_START_TIME }}</td>
+                    <td class="px-4 py-4 text-center">{{ $report->INFECTED_NUM ?? 0 }}</td>
+                    <td class="px-4 py-4 text-center">{{ $report->Deceased_Num ?? 0 }}</td>
+                    <td class="px-4 py-4 text-center">
+                        <span class="px-3 py-1 rounded-full text-sm font-black {{ $statusClasses }}">
+                            {{ $report->REQUEST_STATUS }}
+                        </span>
                     </td>
+                    <td class="px-4 py-4 text-slate-500">{{ $report->REPORT_END_DATE }}</td>
+                    <td class="px-4 py-4 text-slate-500">{{ $report->REPORT_END_TIME }}</td>
+                    <td class="px-4 py-4 text-slate-500">{{ $report->REPORT_FOLLOWUP_NUMBER }}</td>
+>
                 </tr>
                 @empty
                 <tr>
