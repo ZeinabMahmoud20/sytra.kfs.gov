@@ -31,7 +31,8 @@
 </button>
 
 {{-- فورم الفلاتر - مقفول افتراضياً --}}
-<form method="GET" action="{{ route('reports.index') }}" id="filters-form" id="global-search-form"
+{{-- تم التعديل: إزالة id المكرر (global-search-form) من هنا --}}
+<form method="GET" action="{{ route('reports.index') }}" id="filters-form"
     class="hidden bg-white rounded-3xl shadow-sm border border-slate-100 p-6 mb-6 space-y-4">
     <div class="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-4">
         <div class="space-y-1">
@@ -137,7 +138,8 @@
     </div>
 </form>
 <div class="mb-4">
-    <form method="GET" action="{{ route('reports.index') }}">
+    {{-- تم التعديل: إضافة id="global-search-form" هنا (المكان الصحيح) --}}
+    <form method="GET" action="{{ route('reports.index') }}" id="global-search-form">
         {{-- الاحتفاظ بجميع الفلاتر الحالية --}}
         @foreach(request()->except('search', 'page') as $key => $value)
         @if(is_array($value))
@@ -189,7 +191,7 @@
                     <th class="px-4 py-4 font-bold">تاريخ انتهاء البلاغ</th>
                     <th class="px-4 py-4 font-bold">وقت انتهاء البلاغ</th>
                     <th class="px-4 py-4 font-bold">رقم تليفون</th>
-                    
+
                 </tr>
             </thead>
             <tbody class="divide-y divide-slate-100">
@@ -204,7 +206,7 @@
                 @endphp
                 <tr class="hover:bg-slate-50 transition-colors">
                     <td class="px-4 py-4 font-bold text-primary">{{ $report->REPORT_REGISTER_NUMBER }}</td>
-                                        <td class="px-4 py-4">
+                    <td class="px-4 py-4">
                         <div class="flex items-center justify-center gap-2">
                             <a href="{{ route('reports.show', $report) }}" title="عرض"
                                 class="w-8 h-8 flex items-center justify-center rounded-lg bg-blue-50 text-blue-600 hover:bg-blue-100">
@@ -232,7 +234,7 @@
                                 </button>
                             </form>
                         </div>
-                    </td
+                    </td>{{-- تم التعديل: إضافة علامة > الناقصة --}}
                     <td class="px-4 py-4 text-slate-500">{{ $report->user->name ?? 'online' }}</td>
                     <td class="px-4 py-4">{{ $report->REPORTER_NAME }}</td>
                     <td class="px-4 py-4 text-slate-500">{{ $report->REPORTER_SSN }}</td>
@@ -252,7 +254,7 @@
                     <td class="px-4 py-4 text-slate-500">{{ $report->REPORT_END_DATE }}</td>
                     <td class="px-4 py-4 text-slate-500">{{ $report->REPORT_END_TIME }}</td>
                     <td class="px-4 py-4 text-slate-500">{{ $report->REPORT_FOLLOWUP_NUMBER }}</td>
->
+                    {{-- تم التعديل: حذف علامة > الزائدة اللي كانت هنا --}}
                 </tr>
                 @empty
                 <tr>
@@ -362,28 +364,28 @@
     @endif
 
     // ==========================================
-// البحث التلقائي (يشبه Excel)
-// ==========================================
+    // البحث التلقائي (يشبه Excel)
+    // ==========================================
 
-const globalSearch = document.getElementById('global-search');
-const globalSearchForm = document.getElementById('global-search-form');
+    const globalSearch = document.getElementById('global-search');
+    const globalSearchForm = document.getElementById('global-search-form');
 
-if (globalSearch) {
+    if (globalSearch && globalSearchForm) {
 
-    let typingTimer;
+        let typingTimer;
 
-    globalSearch.addEventListener('input', function () {
+        globalSearch.addEventListener('input', function () {
 
-        clearTimeout(typingTimer);
+            clearTimeout(typingTimer);
 
-        typingTimer = setTimeout(function () {
+            typingTimer = setTimeout(function () {
 
-            globalSearchForm.submit();
+                globalSearchForm.submit();
 
-        }, 500); // نصف ثانية بعد التوقف عن الكتابة
+            }, 500); // نصف ثانية بعد التوقف عن الكتابة
 
-    });
+        });
 
-}
+    }
 </script>
 @endpush
