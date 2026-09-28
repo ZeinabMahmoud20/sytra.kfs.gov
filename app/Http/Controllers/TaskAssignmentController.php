@@ -11,6 +11,7 @@ use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Storage;
 
 class TaskAssignmentController extends Controller
@@ -165,6 +166,29 @@ class TaskAssignmentController extends Controller
 
         return redirect()->route('tasks.index')
             ->with('success', 'تم تحديث بيانات التكليف بنجاح.');
+    }
+
+    /**
+     * عرض / تحميل مستند التكليف المرفق.
+     *
+     * الخدمة تتم عبر راوتر محمي بدل الاعتماد على public/storage symlink،
+     * لأن السيرفر غالباً لا ينشئ الـ symlink فيرجع 403 Forbidden.
+     */
+    public function showDocument(TaskAssignment $task)
+    {
+        Gate::authorize('view', $task);
+
+        abort_if(! $task->document_path, 404);
+
+        $disk = Storage::disk('public');
+
+        abort_unless($disk->exists($task->document_path), 404);
+
+        return $disk->response(
+            $task->document_path,
+            basename($task->document_path),
+            ['X-Content-Type-Options' => 'nosniff'],
+        );
     }
 
     public function destroy(TaskAssignment $task)

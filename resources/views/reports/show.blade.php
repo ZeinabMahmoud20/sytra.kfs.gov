@@ -71,7 +71,7 @@
             </div>
 
             @forelse ($report->attachments as $attachment)
-                <a href="{{ Storage::url($attachment->FilePath) }}" target="_blank"
+                <a href="{{ route('attachments.show', $attachment) }}" target="_blank"
                     class="flex items-center gap-3 p-3 rounded-xl hover:bg-slate-50 border border-slate-100 mb-2">
                     <i class="fas fa-file text-slate-400 text-xl"></i>
                     <span class="font-bold text-slate-700">{{ $attachment->AttachmentName }}</span>

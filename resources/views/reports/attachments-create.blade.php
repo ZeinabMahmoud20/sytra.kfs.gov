@@ -40,10 +40,10 @@
 
 <div class="space-y-2">
     <label class="block text-sm font-bold text-slate-500">
-        اختر الملف (حد أقصى 10 ميجا)
+        اختر الملف (صورة فقط - حد أقصى 10 ميجا)
     </label>
 
-    <input type="file" name="attachment" required
+    <input type="file" name="attachment" required accept="image/jpeg,image/png,image/gif,image/webp"
         class="w-full px-4 py-3 rounded-xl border border-slate-200 bg-slate-50">
 </div>
                 <div class="flex gap-3">

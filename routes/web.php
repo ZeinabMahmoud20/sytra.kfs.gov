@@ -5,6 +5,7 @@ use App\Http\Controllers\Admin\RoleController;
 use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\Admin\UserPermissionController;
 use App\Http\Controllers\AttendanceTemplateController;
+use App\Http\Controllers\AttachmentController;
 use App\Http\Controllers\ContactGuideController;
 use App\Http\Controllers\DailyAttendanceController;
 use App\Http\Controllers\DailyAttendanceEntityController;
@@ -70,6 +71,12 @@ Route::middleware(['auth'])->group(function () {
 
     Route::get('/reports/dashboard', [ReportDashboardController::class, 'index'])
         ->name('reports.dashboard');
+
+    Route::get('/attachments/{attachment}', [AttachmentController::class, 'show'])
+        ->name('attachments.show');
+
+    Route::get('/tasks/{task}/document', [TaskAssignmentController::class, 'showDocument'])
+        ->name('tasks.document');
 
     Route::get('/reports/{report}/attachments/create', [ReportController::class, 'createAttachment'])
         ->name('reports.attachments.create');

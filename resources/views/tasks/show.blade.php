@@ -126,7 +126,7 @@
                 @if ($task->document_path)
                     <div class="space-y-2 pt-4 border-t border-blue-100">
                         <span class="block text-sm font-black text-slate-600 mb-2">المستند المرفق</span>
-                        <a href="{{ \Illuminate\Support\Facades\Storage::disk('public')->url($task->document_path) }}"
+                        <a href="{{ route('tasks.document', $task) }}"
                            target="_blank"
                            class="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-accent text-white font-bold hover:bg-accent-hover transition-all shadow-sm">
                             <i class="fas fa-file-download"></i> تحميل / عرض المستند
