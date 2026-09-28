@@ -194,74 +194,133 @@
                     <th class="px-4 py-4 font-bold">الرقم القومي</th>
                 </tr>
             </thead>
-            <tbody class="divide-y divide-slate-100">
-                @forelse ($reports as $report)
-                @php
-                $statusClasses = match ($report->REQUEST_STATUS) {
+
+<tbody class="divide-y divide-slate-100 text-sm">
+    @forelse ($reports as $report)
+        @php
+            $statusClasses = match ($report->REQUEST_STATUS) {
                 'تم استلام البلاغ' => 'bg-red-100 text-red-600',
                 'قيد المعالجة' => 'bg-yellow-100 text-yellow-700',
                 'تم التنفيذ', 'تم الانتهاء' => 'bg-green-100 text-green-700',
                 default => 'bg-slate-100 text-slate-600',
-                };
-                @endphp
-                <tr class="hover:bg-slate-50 transition-colors">
-                    <td class="px-4 py-4 font-bold text-primary">{{ $report->REPORT_REGISTER_NUMBER }}</td>
-                    <td class="px-4 py-4">
-                        <div class="flex items-center justify-center gap-2">
-                            <a href="{{ route('reports.show', $report) }}" title="عرض"
-                                class="w-8 h-8 flex items-center justify-center rounded-lg bg-blue-50 text-blue-600 hover:bg-blue-100">
-                                <i class="fas fa-eye text-sm"></i>
-                            </a>
-                            <a href="{{ route('reports.edit', $report) }}" title="تعديل"
-                                class="w-8 h-8 flex items-center justify-center rounded-lg bg-amber-50 text-amber-600 hover:bg-amber-100">
-                                <i class="fas fa-edit text-sm"></i>
-                            </a>
-                            <a href="{{ route('reports.attachments.create', $report) }}" title="إضافة مرفق"
-                                class="w-8 h-8 flex items-center justify-center rounded-lg bg-purple-50 text-purple-600 hover:bg-purple-100">
-                                <i class="fas fa-paperclip text-sm"></i>
-                            </a>
-                            <a href="{{ route('reports.show', $report) }}#attachments" title="عرض المرفقات"
-                                class="w-8 h-8 flex items-center justify-center rounded-lg bg-slate-100 text-slate-600 hover:bg-slate-200">
-                                <i class="fas fa-folder-open text-sm"></i>
-                            </a>
-                            <form method="POST" action="{{ route('reports.destroy', $report) }}"
-                                onsubmit="return confirm('هل انت متأكد من حذف هذا البلاغ؟ هذا الإجراء غير قابل للتراجع.')">
-                                @csrf
-                                @method('DELETE')
-                                <button type="submit" title="حذف"
-                                    class="w-8 h-8 flex items-center justify-center rounded-lg bg-red-50 text-red-600 hover:bg-red-100">
-                                    <i class="fas fa-trash text-sm"></i>
-                                </button>
-                            </form>
-                        </div>
-                    </td>{{-- تم التعديل: إضافة علامة > الناقصة --}}
-                    <td class="px-4 py-4 text-slate-500">{{ $report->user->name ?? 'online' }}</td>
-                    <td class="px-4 py-4">{{ $report->REPORTER_NAME }}</td>
-                    <td class="px-4 py-4 text-center">
-                        <span class="px-3 py-1 rounded-full text-sm font-black {{ $statusClasses }}">
-                            {{ $report->REQUEST_STATUS }}
-                        </span>
-                    </td>
-                    <td class="px-4 py-4 text-slate-500">{{ $report->REPORTING_Auth ?? optional($report->reportingType)->AUTHORITY }}</td>
-                    <td class="px-4 py-4 font-semibold">{{ $report->reportingType->REPORT_SORT ?? '-' }}</td>
-                    <td class="px-4 py-4 text-slate-500">{{ $report->city->CITY_NAME ?? '-' }}</td>
-                    <td class="px-4 py-4 text-slate-500">{{ $report->village->VILLAGE_NAME ?? '-' }}</td>
-                    <td class="px-4 py-4 text-slate-500">{{ $report->REPORT_START_DATE }}</td>
-                    <td class="px-4 py-4 text-slate-500">{{ $report->REPORT_START_TIME }}</td>
-                    <td class="px-4 py-4 text-center">{{ $report->INFECTED_NUM ?? 0 }}</td>
-                    <td class="px-4 py-4 text-center">{{ $report->Deceased_Num ?? 0 }}</td>
-                    
-                    <td class="px-4 py-4 text-slate-500">{{ $report->REPORT_END_DATE }}</td>
-                    <td class="px-4 py-4 text-slate-500">{{ $report->REPORT_END_TIME }}</td>
-                    <td class="px-4 py-4 text-slate-500">{{ $report->REPORT_FOLLOWUP_NUMBER }}</td>
-                    <td class="px-4 py-4 text-slate-500">{{ $report->REPORTER_SSN }}</td>
-                </tr>
-                @empty
-                <tr>
-                    <td colspan="17" class="px-6 py-8 text-center text-slate-400">لا توجد بلاغات مطابقة</td>
-                </tr>
-                @endforelse
-            </tbody>
+            };
+        @endphp
+
+        <tr class="hover:bg-slate-50 transition-colors">
+
+            <td class="px-2 py-2 text-primary whitespace-nowrap">
+                {{ $report->REPORT_REGISTER_NUMBER }}
+            </td>
+
+            <td class="px-1 py-2">
+                <div class="flex items-center justify-center gap-1">
+                    <a href="{{ route('reports.show', $report) }}"
+                        title="عرض"
+                        class="w-7 h-7 flex items-center justify-center rounded-md bg-blue-50 text-blue-600 hover:bg-blue-100">
+                        <i class="fas fa-eye text-xs"></i>
+                    </a>
+
+                    <a href="{{ route('reports.edit', $report) }}"
+                        title="تعديل"
+                        class="w-7 h-7 flex items-center justify-center rounded-md bg-amber-50 text-amber-600 hover:bg-amber-100">
+                        <i class="fas fa-edit text-xs"></i>
+                    </a>
+
+                    <a href="{{ route('reports.attachments.create', $report) }}"
+                        title="إضافة مرفق"
+                        class="w-7 h-7 flex items-center justify-center rounded-md bg-purple-50 text-purple-600 hover:bg-purple-100">
+                        <i class="fas fa-paperclip text-xs"></i>
+                    </a>
+
+                    <a href="{{ route('reports.show', $report) }}#attachments"
+                        title="عرض المرفقات"
+                        class="w-7 h-7 flex items-center justify-center rounded-md bg-slate-100 text-slate-600 hover:bg-slate-200">
+                        <i class="fas fa-folder-open text-xs"></i>
+                    </a>
+
+                    <form method="POST"
+                        action="{{ route('reports.destroy', $report) }}"
+                        onsubmit="return confirm('هل انت متأكد من حذف هذا البلاغ؟ هذا الإجراء غير قابل للتراجع.')">
+                        @csrf
+                        @method('DELETE')
+                        <button type="submit" title="حذف"
+                            class="w-7 h-7 flex items-center justify-center rounded-md bg-red-50 text-red-600 hover:bg-red-100">
+                            <i class="fas fa-trash text-xs"></i>
+                        </button>
+                    </form>
+                </div>
+            </td>
+
+            <td class="px-2 py-2 text-slate-500">
+                {{ $report->user->name ?? 'online' }}
+            </td>
+
+            <td class="px-2 py-2">
+                {{ $report->REPORTER_NAME }}
+            </td>
+
+            <td class="px-2 py-2 text-center whitespace-nowrap">
+                <span class="px-2 py-1 rounded-full text-xs font-bold {{ $statusClasses }}">
+                    {{ $report->REQUEST_STATUS }}
+                </span>
+            </td>
+
+            <td class="px-2 py-2 text-slate-500">
+                {{ $report->REPORTING_Auth ?? optional($report->reportingType)->AUTHORITY }}
+            </td>
+
+            <td class="px-2 py-2 font-semibold">
+                {{ $report->reportingType->REPORT_SORT ?? '-' }}
+            </td>
+
+            <td class="px-2 py-2 text-slate-500">
+                {{ $report->city->CITY_NAME ?? '-' }}
+            </td>
+
+            <td class="px-2 py-2 text-slate-500">
+                {{ $report->village->VILLAGE_NAME ?? '-' }}
+            </td>
+
+            <td class="px-2 py-2 text-slate-500 whitespace-nowrap">
+                {{ $report->REPORT_START_DATE }}
+            </td>
+
+            <td class="px-2 py-2 text-slate-500 whitespace-nowrap">
+                {{ $report->REPORT_START_TIME }}
+            </td>
+
+            <td class="px-2 py-2 text-center whitespace-nowrap">
+                {{ $report->INFECTED_NUM ?? 0 }}
+            </td>
+
+            <td class="px-2 py-2 text-center whitespace-nowrap">
+                {{ $report->Deceased_Num ?? 0 }}
+            </td>
+
+            <td class="px-2 py-2 text-slate-500 whitespace-nowrap">
+                {{ $report->REPORT_END_DATE }}
+            </td>
+
+            <td class="px-2 py-2 text-slate-500 whitespace-nowrap">
+                {{ $report->REPORT_END_TIME }}
+            </td>
+
+            <td class="px-2 py-2 text-slate-500 whitespace-nowrap">
+                {{ $report->REPORT_FOLLOWUP_NUMBER }}
+            </td>
+
+            <td class="px-2 py-2 text-slate-500 whitespace-nowrap">
+                {{ $report->REPORTER_SSN }}
+            </td>
+        </tr>
+    @empty
+        <tr>
+            <td colspan="17" class="px-3 py-5 text-center text-slate-400">
+                لا توجد بلاغات مطابقة
+            </td>
+        </tr>
+    @endforelse
+</tbody>
         </table>
     </div>
 </div>
