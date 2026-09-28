@@ -172,6 +172,7 @@ class ReportController extends Controller
             'REQUEST_STATUS' => ['required', Rule::in($allowedStatuses)],
             'notified_authorities' => ['nullable', 'array'],
             'notified_authorities.*' => ['string'],
+            'NOTIFIED_AUTHORITIES' => ['nullable', 'string', 'max:5000'],
             'injured' => ['nullable', 'array'],
             'injured.*.name' => ['required_with:injured', 'string', 'max:50'],
             'injured.*.age' => ['required_with:injured', 'integer', 'min:1', 'max:150'],
@@ -215,6 +216,7 @@ class ReportController extends Controller
                 'INFECTED_NUM' => count($validated['injured'] ?? []),
                 'REQUEST_STATUS' => $validated['REQUEST_STATUS'],
                 'REPORT_FOLLOWUP_NUMBER' => $validated['REPORT_FOLLOWUP_NUMBER'],
+                'NOTIFIED_AUTHORITIES' => $validated['NOTIFIED_AUTHORITIES'] ?? null,
             ];
 
             if ($willBeLocked && !$wasLocked) {
@@ -645,6 +647,7 @@ class ReportController extends Controller
             'DAMAGE' => 'ملخص البلاغ',
             'REQUEST_STATUS' => 'حالة البلاغ',
             'notified_authorities' => 'الجهات المخطرة',
+            'NOTIFIED_AUTHORITIES' => 'الإجراءات المتخذة',
             'injured.*.name' => 'اسم المصاب',
             'injured.*.age' => 'عمر المصاب',
             'injured.*.birth_date' => 'عمر المصاب',

@@ -220,6 +220,13 @@
                             <p class="text-xs text-slate-400"> اختيار "تم الانتهاء" يقوم بقفل البلاغ ويسجل تاريخ ووقت القفل والمستخدم الذي قام بالإنهاء.</p>
                             @endif
                         </div>
+
+                        <div class="space-y-2 md:col-span-2">
+                            <label class="block text-sm font-black text-slate-600">الإجراءات المتخذة</label>
+                            <textarea name="NOTIFIED_AUTHORITIES" rows="4" @disabled($isLocked)
+                                placeholder="اكتب الإجراءات المتخذة تجاه البلاغ..."
+                                class="w-full px-4 py-3 rounded-xl border border-slate-200 bg-slate-50 focus:bg-white focus:ring-2 focus:ring-accent/20 focus:border-accent outline-none transition-all disabled:opacity-60 disabled:cursor-not-allowed">{{ old('NOTIFIED_AUTHORITIES', $report->NOTIFIED_AUTHORITIES) }}</textarea>
+                        </div>
                     </div>
                 </div>
 
