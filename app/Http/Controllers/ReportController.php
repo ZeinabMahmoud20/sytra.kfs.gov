@@ -15,6 +15,7 @@ use App\Models\SystemRecord;
 use App\Models\Village;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\Request;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
@@ -34,6 +35,57 @@ class ReportController extends Controller
         'تم الانتهاء',
     ];
 
+    /**
+     * كل جهات البلاغ المتاحة: قيم AUTHORITY من جدول REPORTING_TYPES نفسه
+     * (مش جدول AUTHORITY المنفصل، اللي ده بتاع الـ signals وله علاقة تامة).
+     *
+     * القيم بتتقصّ في PHP مش في SQL عن قصد: Laravel بيقصّ المسافات من كل input
+     * عبر TrimStrings، فلازم القيمة اللي بنعرضها في الـ <option> تكون نفس اللي
+     * السيرفر هيستقبلها بايت-ببايت. وكمان بيمنع تكرار الجهة في القائمة لو
+     * الجدول لسه فيه صفوف قديمة بمسافات مختلفة (utf8mb4_unicode_ci PAD SPACE).
+     */
+    protected function authorityOptions(): Collection
+    {
+        return ReportingType::where('IS_INTERNET', false)
+            ->whereNotNull('AUTHORITY')
+            ->distinct()
+            ->pluck('AUTHORITY')
+            ->map(fn ($authority) => trim($authority))
+            ->unique()
+            ->sort()
+            ->values();
+    }
+
+    /**
+     * أنواع البلاغ المرتبطة بجهة معيّنة، بنفس ترتيب ونفس فلتر الـ AJAX
+     * (reportTypesByAuth) عشان اللي بيترسم في الصفحة يطلع زي اللي بيترسم بعد التغيير.
+     * المقارنة بـ TRIM عشان نسخ الجهة القديمة بمسافات ما تختفيش من القائمة.
+     */
+    protected function typeOptionsFor(?string $auth): Collection
+    {
+        if (! $auth) {
+            return ReportingType::query()->whereRaw('1 = 0')->get();
+        }
+
+        return ReportingType::whereRaw('TRIM(AUTHORITY) = ?', [$auth])
+            ->where('IS_INTERNET', false)
+            ->orderBy('REPORT_SORT')
+            ->get();
+    }
+
+    /**
+     * جهة البلاغ المختارة للعرض: المرجع الموحد هو AUTHORITY بتاع نوع البلاغ نفسه،
+     * والقيمة المحفوظة في البلاغ هي الـ fallback بس لو نوع البلاغ مفقود أو بلا جهة.
+     * ده نفس الـ fallback المستخدم في الفلاتر والتصدير، ويمنع إن المستخدم يشوف
+     * جهة في صفحة التعديل مختلفة عن اللي في صفحة عرض البلاغ.
+     */
+    protected function currentAuthority(RecieveReport $report): ?string
+    {
+        $authority = $report->reportingType?->AUTHORITY ?: $report->REPORTING_Auth;
+
+        return $authority === null ? null : trim($authority);
+    }
+
     public function index(Request $request)
     {
         $reports = $this->filteredQuery($request)->paginate(20)->withQueryString();
@@ -41,7 +93,7 @@ class ReportController extends Controller
         return view('reports.index', [
             'reports' => $reports,
             'cities' => City::orderBy('CITY_NAME')->get(),
-            'authorities' => ReportingType::where('IS_INTERNET', false)->whereNotNull('AUTHORITY')->distinct()->pluck('AUTHORITY'),
+            'authorities' => $this->authorityOptions(),
             'reportingTypes' => ReportingType::orderBy('REPORT_SORT')->get(),
             'statuses' => $this->statuses,
         ]);
@@ -79,11 +131,12 @@ class ReportController extends Controller
             ->when($request->filled('city'), fn($q) => $q->where('CITY', $request->city))
             ->when($villageFilter, fn($q) => $q->where('VILLAGE', $villageFilter))
             // جهة البلاغ: بتتطابق مع REPORTING_Auth المباشر أو AUTHORITY بتاعة نوع البلاغ (زي الديسكتوب بالظبط)
+            // المقارنة بـ TRIM عشان الصفوف القديمة اللي فيها مسافة ما تختفيش من الفلتر
             ->when($request->filled('reporting_auth'), function ($q) use ($request) {
-                $auth = $request->reporting_auth;
+                $auth = trim($request->reporting_auth);
                 $q->where(function ($sub) use ($auth) {
-                    $sub->where('REPORTING_Auth', $auth)
-                        ->orWhereHas('reportingType', fn($rt) => $rt->where('AUTHORITY', $auth));
+                    $sub->whereRaw('TRIM(REPORTING_Auth) = ?', [$auth])
+                        ->orWhereHas('reportingType', fn($rt) => $rt->whereRaw('TRIM(AUTHORITY) = ?', [$auth]));
                 });
             })
             ->when($request->filled('reporting_sort'), fn($q) => $q->where('REPORTING_SORT', $request->reporting_sort))
@@ -116,7 +169,7 @@ class ReportController extends Controller
         // المشرف العام بس اللي يقدر يعدّل بلاغ "تم الانتهاء"، أي دور تاني يبقى عرض فقط
         $isLocked = $report->REQUEST_STATUS === 'تم الانتهاء' && !$canLockReport;
 
-        $report->load('lockedByUser');
+        $report->load(['lockedByUser', 'reportingType']);
 
         $notifiedAuthorities = NotifiedAuth::orderBy('Notified_Auth')->pluck('Notified_Auth');
         $selectedAuthorities = $report->reportAuths()->pluck('AUTHORITY_ID')->toArray();
@@ -124,13 +177,30 @@ class ReportController extends Controller
         // الجهات المحددة (المُعلّمة) أولاً ثم الباقي أبجدياً
         $notifiedAuthorities = $notifiedAuthorities->sortByDesc(fn ($authority) => in_array($authority, $selectedAuthorities));
 
+        $currentAuth = $this->currentAuthority($report);
+
+        // لو الجهة المحفوظة بقت خارج قائمة الجهات (اتغير اسمها من الإعدادات مثلاً)
+        // بنضيفها للقائمة صريحاً عشان تظهر محددة ومختارة، بدل ما المتصفح يقفز لأول عنصر
+        $authorities = $this->authorityOptions();
+        if ($currentAuth && ! $authorities->contains($currentAuth)) {
+            $authorities = $authorities->push($currentAuth);
+        }
+
+        // نفس الفكرة للأنواع: لو نوع البلاغ الحالي خارج القائمة (IS_INTERNET = 1 أو NULL
+        // في بيانات قديمة) بنضيفه صريحاً، عشان يظهر متخيار من غير ما الحفظ يغيّره بصمت
+        $reportingTypes = $this->typeOptionsFor($currentAuth);
+        if ($report->reportingType && ! $reportingTypes->contains('REPORT_ID', $report->reportingType->REPORT_ID)) {
+            $reportingTypes = $reportingTypes->push($report->reportingType);
+        }
+
         return view('reports.edit', [
             'report' => $report,
             'isLocked' => $isLocked,
             'canLockReport' => $canLockReport,
             'canEditDateTime' => auth()->user()->hasRole('مشرف عام'),
-            'authorities' => ReportingType::where('IS_INTERNET', false)->whereNotNull('AUTHORITY')->distinct()->pluck('AUTHORITY'),
-            'reportingTypes' => ReportingType::where('AUTHORITY', $report->REPORTING_Auth)->get(),
+            'currentAuth' => $currentAuth,
+            'authorities' => $authorities,
+            'reportingTypes' => $reportingTypes,
             'cities' => City::orderBy('CITY_NAME')->get(),
             'villages' => Village::where('CITY_ID', $report->CITY)->orderBy('VILLAGE_NAME')->get(),
             'statuses' => $this->statuses,
@@ -160,8 +230,12 @@ class ReportController extends Controller
             'REPORTER_SSN' => ['required', 'digits:14', 'regex:/^[23]\d{13}$/'],
             'REPORT_START_DATE' => ['required', 'date'],
             'REPORT_START_TIME' => ['required'],
-            'REPORTING_Auth' => ['required', 'string', 'max:500'],
-            'REPORTING_SORT' => ['required', 'exists:REPORTING_TYPES,REPORT_ID'],
+            'REPORTING_Auth' => ['required', 'string', 'max:500', Rule::in($this->authorityOptions()->all())],
+            'REPORTING_SORT' => [
+                'required',
+                Rule::exists('REPORTING_TYPES', 'REPORT_ID')
+                    ->where(fn ($query) => $query->whereRaw('TRIM(AUTHORITY) = ?', [$request->input('REPORTING_Auth')])),
+            ],
             'CITY' => ['required', 'exists:CITY,CITY_ID'],
             'location_type' => ['required', 'in:مدينة,قرية'],
             'VILLAGE' => ['required', 'exists:VILLAGE,VILLAGE_ID'],
@@ -446,7 +520,7 @@ class ReportController extends Controller
         $notifiedAuthorities = $notifiedAuthorities->sortByDesc(fn ($authority) => in_array($authority, $selectedAuthorities));
 
         return view('reports.create', [
-            'authorities' => ReportingType::where('IS_INTERNET', false)->whereNotNull('AUTHORITY')->distinct()->pluck('AUTHORITY'),
+            'authorities' => $this->authorityOptions(),
             'cities' => City::orderBy('CITY_NAME')->get(),
             'notifiedAuthorities' => $notifiedAuthorities,
             'nextRegisterNumber' => $this->buildNextRegisterNumber(),
@@ -456,9 +530,9 @@ class ReportController extends Controller
 
     public function reportTypesByAuth(Request $request)
     {
-        $auth = $request->query('auth');
+        $auth = trim((string) $request->query('auth'));
 
-        $types = ReportingType::where('AUTHORITY', $auth)
+        $types = ReportingType::whereRaw('TRIM(AUTHORITY) = ?', [$auth])
             ->where('IS_INTERNET', false)
             ->orderBy('REPORT_SORT')
             ->get(['REPORT_ID', 'REPORT_SORT']);
@@ -492,8 +566,12 @@ class ReportController extends Controller
             'REPORTER_SSN' => ['required', 'digits:14', 'regex:/^[23]\d{13}$/'],
             'REPORT_START_DATE' => ['required', 'date'],
             'REPORT_START_TIME' => ['required'],
-            'REPORTING_Auth' => ['required', 'string', 'max:500'],
-            'REPORTING_SORT' => ['required', 'exists:REPORTING_TYPES,REPORT_ID'],
+            'REPORTING_Auth' => ['required', 'string', 'max:500', Rule::in($this->authorityOptions()->all())],
+            'REPORTING_SORT' => [
+                'required',
+                Rule::exists('REPORTING_TYPES', 'REPORT_ID')
+                    ->where(fn ($query) => $query->whereRaw('TRIM(AUTHORITY) = ?', [$request->input('REPORTING_Auth')])),
+            ],
             'CITY' => ['required', 'exists:CITY,CITY_ID'],
             'location_type' => ['required', 'in:مدينة,قرية'],
             'VILLAGE' => ['required', 'exists:VILLAGE,VILLAGE_ID'],
@@ -626,6 +704,8 @@ class ReportController extends Controller
             'REPORT_FOLLOWUP_NUMBER.regex' => 'رقم الهاتف غير صحيح: يجب أن يكون 11 رقماً يبدأ بـ 01 (موبايل) أو 10 أرقام يبدأ بـ 0 (أرضي).',
             'REPORTER_SSN.regex' => 'الرقم القومي غير صحيح: يجب أن يتكون من 14 رقماً ويبدأ بـ 2 أو 3.',
             'REPORTER_SSN.digits' => 'الرقم القومي يجب أن يتكون من 14 رقماً بالضبط.',
+            'REPORTING_Auth.in' => 'جهة البلاغ المختارة غير موجودة في قائمة الجهات.',
+            'REPORTING_SORT.exists' => 'نوع البلاغ المختار لا يخص جهة البلاغ المحددة، اختر نوع بلاغ تابع للجهة المختارة.',
         ];
     }
 

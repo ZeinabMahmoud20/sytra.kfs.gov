@@ -266,7 +266,7 @@
             </td>
 
             <td class="px-2 py-2 text-slate-500">
-                {{ $report->REPORTING_Auth ?? optional($report->reportingType)->AUTHORITY }}
+                {{ $report->reportingType?->AUTHORITY ?? $report->REPORTING_Auth ?? '-' }}
             </td>
 
             <td class="px-2 py-2 font-semibold">

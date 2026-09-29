@@ -18,7 +18,7 @@
             <div><span class="text-slate-400 text-sm block">اسم المبلغ</span><span class="font-bold">{{ $report->REPORTER_NAME }}</span></div>
             <div><span class="text-slate-400 text-sm block">الرقم القومي</span><span class="font-bold">{{ $report->REPORTER_SSN }}</span></div>
             <div><span class="text-slate-400 text-sm block">رقم الهاتف</span><span class="font-bold">{{ $report->REPORT_FOLLOWUP_NUMBER }}</span></div>
-            <div><span class="text-slate-400 text-sm block">جهة البلاغ</span><span class="font-bold">{{ $report->REPORTING_Auth }}</span></div>
+            <div><span class="text-slate-400 text-sm block">جهة البلاغ</span><span class="font-bold">{{ $report->reportingType?->AUTHORITY ?? $report->REPORTING_Auth ?? '-' }}</span></div>
             <div><span class="text-slate-400 text-sm block">نوع البلاغ</span><span class="font-bold">{{ $report->reportingType->REPORT_SORT ?? '-' }}</span></div>
             <div><span class="text-slate-400 text-sm block">المركز</span><span class="font-bold">{{ $report->city->CITY_NAME ?? '-' }}</span></div>
             <div><span class="text-slate-400 text-sm block">المدينة/القرية</span><span class="font-bold">{{ $report->village->VILLAGE_NAME ?? '-' }}</span></div>

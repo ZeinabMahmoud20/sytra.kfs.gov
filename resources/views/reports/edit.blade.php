@@ -127,7 +127,7 @@
                             <select name="REPORTING_Auth" id="auth-select" required @disabled($isLocked)
                                 class="w-full px-4 py-3 rounded-xl border border-slate-200 bg-slate-50 focus:bg-white focus:ring-2 focus:ring-accent/20 focus:border-accent outline-none transition-all disabled:opacity-60 disabled:cursor-not-allowed">
                                 @foreach ($authorities as $source)
-                                <option value="{{ $source }}" @selected(old('REPORTING_Auth', $report->REPORTING_Auth) == $source)>{{ $source }}</option>
+                                <option value="{{ $source }}" @selected((string) old('REPORTING_Auth', $currentAuth) === (string) $source)>{{ $source }}</option>
                                 @endforeach
                             </select>
                         </div>
@@ -137,7 +137,7 @@
                             <select name="REPORTING_SORT" id="report-sort-select" required @disabled($isLocked)
                                 class="w-full px-4 py-3 rounded-xl border border-slate-200 bg-slate-50 focus:bg-white focus:ring-2 focus:ring-accent/20 focus:border-accent outline-none transition-all disabled:opacity-60 disabled:cursor-not-allowed">
                                 @foreach ($reportingTypes as $type)
-                                <option value="{{ $type->REPORT_ID }}" @selected(old('REPORTING_SORT', $report->REPORTING_SORT) == $type->REPORT_ID)>{{ $type->REPORT_SORT }}</option>
+                                <option value="{{ $type->REPORT_ID }}" @selected((string) old('REPORTING_SORT', $report->REPORTING_SORT) === (string) $type->REPORT_ID)>{{ $type->REPORT_SORT }}</option>
                                 @endforeach
                             </select>
                         </div>
@@ -439,18 +439,32 @@
         fetch(`{{ route('reports.report-types-by-auth') }}?auth=${encodeURIComponent(authValue)}`)
             .then(res => res.json())
             .then(types => {
-                reportSortSelect.innerHTML = '<option value="" disabled>اختر نوع البلاغ</option>';
+                // الـ placeholder لازم يكون selected عشان المستخدم ما يحفظش نوع من جهة تانية
+                reportSortSelect.innerHTML = '<option value="" disabled selected>اختر نوع البلاغ</option>';
+                let preselected = false;
                 types.forEach(t => {
                     const opt = document.createElement('option');
                     opt.value = t.REPORT_ID;
                     opt.textContent = t.REPORT_SORT;
-                    if (preselect && String(preselect) === String(t.REPORT_ID)) opt.selected = true;
+                    if (preselect && String(preselect) === String(t.REPORT_ID)) {
+                        opt.selected = true;
+                        preselected = true;
+                    }
                     reportSortSelect.appendChild(opt);
                 });
+
+                if (!types.length) {
+                    const opt = document.createElement('option');
+                    opt.textContent = 'لا توجد أنواع بلاغ مسجلة لهذه الجهة';
+                    reportSortSelect.appendChild(opt);
+                } else if (preselect && !preselected) {
+                    console.warn('نوع البلاغ المحفوظ لا ينتمي لجهة البلاغ الحالية');
+                }
             });
     }
 
     authSelect.addEventListener('change', function() {
+        // تغيير الجهة بيلغي أي تحديد قديم للنوع: النوع لازم ينتمي للجهة الجديدة
         if (this.value) loadReportTypes(this.value);
     });
 
