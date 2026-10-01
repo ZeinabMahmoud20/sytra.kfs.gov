@@ -424,6 +424,7 @@
                     $settingsRoutes = [
                         'settings.reporting-types.*',
                         'settings.signal-authorities.*',
+                        'settings.signal-authority-groups.*',
                         'settings.notified-auths.*',
                         'settings.signal-contents.*',
                     ];
@@ -458,6 +459,15 @@
                                     {{ request()->routeIs('settings.signal-authorities.*') ? 'bg-white/15 text-white font-bold' : 'hover:bg-white/10 text-white/80' }}">
                                 <i class="fas fa-broadcast-tower w-5 text-center text-accent"></i>
                                 جهات الإشارة
+                            </a>
+                        @endcan
+
+                        @can('signals.view')
+                            <a href="{{ route('settings.signal-authority-groups.index') }}"
+                                class="flex items-center gap-3 px-4 py-2 rounded-lg transition-all duration-300 text-sm
+                                    {{ request()->routeIs('settings.signal-authority-groups.*') ? 'bg-white/15 text-white font-bold' : 'hover:bg-white/10 text-white/80' }}">
+                                <i class="fas fa-layer-group w-5 text-center text-accent"></i>
+                                مجموعات جهات الإشارة
                             </a>
                         @endcan
 

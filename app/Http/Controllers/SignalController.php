@@ -6,6 +6,7 @@ use App\Exports\SignalsExport;
 use App\Models\MainSignal;
 use App\Models\SignalAuth;
 use App\Models\SignalAuthority;
+use App\Models\SignalAuthorityGroup;
 use App\Models\SignalContent;
 use App\Models\SignalUnit;
 use App\Models\SystemRecord;
@@ -28,6 +29,23 @@ class SignalController extends Controller
             'signals.*.authorities' => ['nullable', 'array'],
             'signals.*.authorities.*' => ['nullable', 'in:Correct,X'],
         ];
+    }
+
+    /**
+     * مجموعات جهات الإشارة (الجروبات) بالشكل اللي الـ JS في صفحة التسجيل محتاجه.
+     * بنبعت أسماء الجهات الأعضاء (مش الـ IDs) لأن حقول الاختيار متخزنة باسم الجهة.
+     */
+    protected function authorityGroupsPayload(): array
+    {
+        return SignalAuthorityGroup::with('authorities')
+            ->orderBy('GROUP_NAME')
+            ->get()
+            ->map(fn ($group) => [
+                'id' => $group->ID,
+                'name' => $group->GROUP_NAME,
+                'members' => $group->authorities->pluck('SIGNAL_NAME')->filter()->values()->all(),
+            ])
+            ->all();
     }
 
     /**
@@ -99,6 +117,7 @@ class SignalController extends Controller
         return view('signals.create', [
             'nextSignalCode' => $this->buildNextSignalCode(),
             'signalAuthorities' => SignalAuthority::orderBy('SIGNAL_NAME')->get(),
+            'signalAuthorityGroups' => $this->authorityGroupsPayload(),
             'signalContents' => SignalContent::orderBy('SIGNALCONTENT')->pluck('SIGNALCONTENT'),
         ]);
     }
@@ -150,6 +169,7 @@ class SignalController extends Controller
             'mainSignal' => $mainSignal,
             'existingUnits' => $existingUnits,
             'signalAuthorities' => SignalAuthority::orderBy('SIGNAL_NAME')->get(),
+            'signalAuthorityGroups' => $this->authorityGroupsPayload(),
             'signalContents' => SignalContent::orderBy('SIGNALCONTENT')->pluck('SIGNALCONTENT'),
         ]);
     }

@@ -109,6 +109,30 @@
 
         <div class="space-y-2">
             <label class="block text-xs font-black text-slate-600">جهات استقبال الإشارة</label>
+
+            @if (count($signalAuthorityGroups))
+                <div class="authority-groups-box rounded-xl border border-accent/30 bg-accent/5 p-3 space-y-2">
+                    <div class="flex items-center gap-2 flex-wrap">
+                        <span class="text-xs font-black text-primary">
+                            <i class="fas fa-layer-group text-accent"></i> مجموعات جاهزة:
+                        </span>
+                        <span class="text-[11px] text-slate-500 font-bold">اضغط على المجموعة لتحديد كل جهاتها بنفس الحالة</span>
+                    </div>
+                    <div class="authority-groups flex flex-wrap gap-2">
+                        @foreach ($signalAuthorityGroups as $group)
+                            <button type="button"
+                                class="group-toggle flex items-center gap-2 bg-white px-3 py-2 rounded-lg border-2 border-slate-200 font-bold text-xs transition-all"
+                                data-members="{{ json_encode($group['members']) }}" data-group-state=""
+                                title="{{ count($group['members']) }} جهة">
+                                <i class="fas fa-layer-group text-accent"></i>
+                                <span>{{ $group['name'] }}</span>
+                                <span class="group-count px-1.5 py-0.5 rounded-md bg-slate-100 text-[10px] text-slate-500 font-black">{{ count($group['members']) }}</span>
+                            </button>
+                        @endforeach
+                    </div>
+                </div>
+            @endif
+
             <input type="text" placeholder="بحث..." class="authority-search w-full px-3 py-2 rounded-lg border border-slate-200 text-sm mb-2">
             <div class="authority-list flex flex-wrap gap-3 max-h-52 overflow-y-auto p-1">
                 @foreach ($signalAuthorities as $auth)
@@ -138,6 +162,7 @@
     <script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/ar.js"></script>
     <script>
         let cardIndex = 0;
+        const AUTHORITY_STATES = ['', 'Correct', 'X'];
 
         function addSignalCard() {
             const template = document.getElementById('signal-card-template');
@@ -165,9 +190,14 @@
             subjectInput.name = `signals[${index}][subject]`;
             typeInputs.forEach(input => input.name = `signals[${index}][type]`);
 
+            // خريطة اسم الجهة -> الكارت نفسه عشان الجروبات تلاقي أعضائها بالاسم
+            const authorityIndex = new Map();
+
             // تفعيل تدوير الحالة الثلاثية لكل جهة (فاضي -> Correct -> X -> فاضي)
             wrapper.querySelectorAll('.authority-toggle').forEach(btn => {
                 const authorityName = btn.dataset.name;
+                authorityIndex.set(authorityName, btn);
+
                 const hiddenInput = document.createElement('input');
                 hiddenInput.type = 'hidden';
                 hiddenInput.name = `signals[${index}][authorities][${authorityName}]`;
@@ -175,12 +205,27 @@
                 btn.appendChild(hiddenInput);
 
                 btn.addEventListener('click', function () {
-                    const states = ['', 'Correct', 'X'];
-                    const current = states.indexOf(this.dataset.state);
-                    const next = states[(current + 1) % states.length];
-                    this.dataset.state = next;
-                    hiddenInput.value = next;
-                    applyAuthorityState(this, next);
+                    const current = AUTHORITY_STATES.indexOf(this.dataset.state);
+                    setAuthorityState(this, AUTHORITY_STATES[(current + 1) % AUTHORITY_STATES.length]);
+                    syncGroups(wrapper, authorityIndex);
+                });
+            });
+
+            // الجروبات: ضغطة واحدة بتحدد كل جهات المجموعة بنفس الحالة
+            wrapper.querySelectorAll('.group-toggle').forEach(groupBtn => {
+                const members = JSON.parse(groupBtn.dataset.members || '[]');
+
+                groupBtn.addEventListener('click', function () {
+                    const current = AUTHORITY_STATES.indexOf(this.dataset.groupState);
+                    const next = AUTHORITY_STATES[(current + 1) % AUTHORITY_STATES.length];
+
+                    members.forEach(name => {
+                        const memberBtn = authorityIndex.get(name);
+                        if (memberBtn) setAuthorityState(memberBtn, next);
+                    });
+
+                    this.dataset.groupState = next;
+                    syncGroups(wrapper, authorityIndex);
                 });
             });
 
@@ -203,6 +248,46 @@
                 altFormat: 'd/m/Y',
                 locale: 'ar'
             });
+
+            syncGroups(wrapper, authorityIndex);
+        }
+
+        function setAuthorityState(btn, state) {
+            btn.dataset.state = state;
+            const hidden = btn.querySelector('input[type="hidden"]');
+            if (hidden) hidden.value = state;
+            applyAuthorityState(btn, state);
+        }
+
+        // تحديث شكل الجروب حسب حالة أعضائه: كلها فاضية / كلها Correct / كلها X / مختلطة
+        function syncGroups(wrapper, authorityIndex) {
+            wrapper.querySelectorAll('.group-toggle').forEach(groupBtn => {
+                const members = JSON.parse(groupBtn.dataset.members || '[]');
+                const states = members
+                    .map(name => (authorityIndex.get(name) || { dataset: {} }).dataset.state || '');
+
+                const all = state => states.length > 0 && states.every(s => s === state);
+                const groupState = all('Correct') ? 'Correct' : all('X') ? 'X' : all('') ? '' : 'mixed';
+
+                if (groupState !== 'mixed') groupBtn.dataset.groupState = groupState;
+                applyGroupState(groupBtn, groupState);
+            });
+        }
+
+        function applyGroupState(groupBtn, state) {
+            groupBtn.classList.remove(
+                'border-green-500', 'bg-green-50', 'text-green-700',
+                'border-red-500', 'bg-red-50', 'text-red-700',
+                'border-amber-500', 'bg-amber-50', 'text-amber-700'
+            );
+
+            if (state === 'Correct') {
+                groupBtn.classList.add('border-green-500', 'bg-green-50', 'text-green-700');
+            } else if (state === 'X') {
+                groupBtn.classList.add('border-red-500', 'bg-red-50', 'text-red-700');
+            } else if (state === 'mixed') {
+                groupBtn.classList.add('border-amber-500', 'bg-amber-50', 'text-amber-700');
+            }
         }
 
         function applyAuthorityState(btn, state) {

@@ -17,6 +17,7 @@ use App\Http\Controllers\NotifiedAuthController;
 use App\Http\Controllers\ReportController;
 use App\Http\Controllers\ReportingTypeController;
 use App\Http\Controllers\SignalAuthorityController;
+use App\Http\Controllers\SignalAuthorityGroupController;
 use App\Http\Controllers\SignalContentController;
 use App\Http\Controllers\ReportDashboardController;
 use App\Http\Controllers\SignalController;
@@ -310,6 +311,22 @@ Route::prefix('settings')->name('settings.')->middleware(['auth'])->group(functi
     });
     Route::middleware('can:signals.delete')->group(function () {
         Route::delete('signal-authorities/{signalAuthority}', [SignalAuthorityController::class, 'destroy'])->name('signal-authorities.destroy');
+    });
+
+    // مجموعات جهات الإشارة (SIGNAL_AUTHORITY_GROUP) - بتجمع أكثر من جهة في مجموعة واحدة
+    Route::middleware('can:signals.view')->group(function () {
+        Route::get('signal-authority-groups', [SignalAuthorityGroupController::class, 'index'])->name('signal-authority-groups.index');
+    });
+    Route::middleware('can:signals.create')->group(function () {
+        Route::get('signal-authority-groups/create', [SignalAuthorityGroupController::class, 'create'])->name('signal-authority-groups.create');
+        Route::post('signal-authority-groups', [SignalAuthorityGroupController::class, 'store'])->name('signal-authority-groups.store');
+    });
+    Route::middleware('can:signals.edit')->group(function () {
+        Route::get('signal-authority-groups/{signalAuthorityGroup}/edit', [SignalAuthorityGroupController::class, 'edit'])->name('signal-authority-groups.edit');
+        Route::put('signal-authority-groups/{signalAuthorityGroup}', [SignalAuthorityGroupController::class, 'update'])->name('signal-authority-groups.update');
+    });
+    Route::middleware('can:signals.delete')->group(function () {
+        Route::delete('signal-authority-groups/{signalAuthorityGroup}', [SignalAuthorityGroupController::class, 'destroy'])->name('signal-authority-groups.destroy');
     });
 
     // جهات الإخطار (NotifiedAuthTBL)
