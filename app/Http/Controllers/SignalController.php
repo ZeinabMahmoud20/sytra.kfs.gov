@@ -23,7 +23,7 @@ class SignalController extends Controller
             'signals.*.date' => ['required', 'date'],
             'signals.*.time' => ['required'],
             'signals.*.sender' => ['required', 'exists:SIGNAL_AUTHORITY,ID'],
-            'signals.*.content' => ['nullable', 'string'],
+            'signals.*.content' => ['required', 'string'],
             'signals.*.subject' => ['nullable', 'string'],
             'signals.*.type' => ['required', 'in:إشارة لاسلكية,رصد مرئي'],
             'signals.*.authorities' => ['nullable', 'array'],
@@ -126,6 +126,7 @@ class SignalController extends Controller
     {
         $validated = $request->validate($this->validationRules(), [
             'signals.*.sender.required' => 'اختر جهة إرسال الإشارة',
+            'signals.*.content.required' => 'اختر مضمون الإشارة',
         ]);
 
         $mainSignal = DB::transaction(function () use ($validated) {
@@ -178,6 +179,7 @@ class SignalController extends Controller
     {
         $validated = $request->validate($this->validationRules(), [
             'signals.*.sender.required' => 'اختر جهة إرسال الإشارة',
+            'signals.*.content.required' => 'اختر مضمون الإشارة',
         ]);
 
         DB::transaction(function () use ($validated, $mainSignal) {
