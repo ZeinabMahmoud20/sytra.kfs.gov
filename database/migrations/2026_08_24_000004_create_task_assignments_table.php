@@ -25,20 +25,16 @@ return new class extends Migration
             $table->foreignId('created_by')->constrained('users');
 
             $table->text('description');                          // وصف التكليف ومتن المذكرة
-            $table->enum('priority', ['عالية', 'متوسطة', 'منخفضة'])->default('متوسطة');
+            // string بدل enum (قيم enum العربية بتتقص لو ترميز قاعدة السيرفر مش utf8mb4)
+            // القيم المسموحة معرّفة في StoreTaskAssignmentRequest / UpdateTaskAssignmentRequest
+            $table->string('priority', 20)->default('متوسطة');
 
             $table->date('deadline');                             // الموعد النهائي
             $table->date('response_date')->nullable();            // موعد الرد الفعلي
 
             $table->unsignedTinyInteger('completion_percentage')->default(0); // نسبة الإنجاز %
 
-            $table->enum('status', [
-                'لم يبدأ',
-                'جاري التنفيذ',
-                'تم التنفيذ',
-                'متأخر',
-                'متوقف',
-            ])->default('لم يبدأ');
+            $table->string('status', 30)->default('لم يبدأ');
 
             $table->text('notes')->nullable();                    // ملاحظات (تشمل سبب آخر تغيير حالة)
 

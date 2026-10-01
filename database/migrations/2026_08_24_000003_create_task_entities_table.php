@@ -21,7 +21,9 @@ return new class extends Migration
         Schema::create('task_entities', function (Blueprint $table) {
             $table->id();
             $table->string('name');
-            $table->enum('type', ['مركز', 'مدينة', 'إدارة', 'مديرية', 'أخرى'])->default('أخرى');
+            // string بدل enum: قيم enum العربية بتتقص على السيرفر لو ترميز القاعدة مش utf8mb4
+            // القيم المسموحة معرّفة في StoreTaskEntityRequest / UpdateTaskEntityRequest
+            $table->string('type', 50)->default('أخرى');
             $table->boolean('is_active')->default(true);
             $table->timestamps();
         });

@@ -403,11 +403,11 @@ class ReportController extends Controller
     {
         $request->validate([
             'AttachmentName' => ['required', 'in:صورة البلاغ,صورة متابعة البلاغ'],
-            // حد أقصى 10 ميجا، وأنواع صور فقط لأن المرفق صورة بلاغ
-            'attachment' => ['required', 'file', 'mimes:jpg,jpeg,png,gif,webp', 'max:10240'],
+            // يقبل أي صيغة، بحد أقصى 100 ميجا
+            'attachment' => ['required', 'file', 'max:102400'],
         ], [
-            'attachment.mimes' => 'الملف المرفوع يجب أن يكون صورة (jpg, jpeg, png, gif, webp).',
-            'attachment.max' => 'حجم الملف يجب ألا يتجاوز 10 ميجا.',
+            'attachment.file' => 'الملف المرفوع غير صالح.',
+            'attachment.max' => 'حجم الملف يجب ألا يتجاوز 100 ميجا.',
         ]);
 
         $file = $request->file('attachment');
