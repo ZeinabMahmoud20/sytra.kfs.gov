@@ -68,15 +68,31 @@
             <div class="flex items-center justify-between mb-4">
                 <h3 class="font-black text-primary"><i class="fas fa-paperclip text-purple-500 ml-2"></i>المرفقات ({{ $report->attachments->count() }})</h3>
 
+                <a href="{{ route('reports.attachments.create', $report) }}"
+                    class="flex items-center gap-2 bg-purple-50 hover:bg-purple-100 text-purple-600 font-bold text-sm px-4 py-2 rounded-xl">
+                    <i class="fas fa-paperclip text-xs"></i> إضافة مرفق
+                </a>
             </div>
 
             @forelse ($report->attachments as $attachment)
-                <a href="{{ route('attachments.show', $attachment) }}" target="_blank"
-                    class="flex items-center gap-3 p-3 rounded-xl hover:bg-slate-50 border border-slate-100 mb-2">
-                    <i class="fas fa-file text-slate-400 text-xl"></i>
-                    <span class="font-bold text-slate-700">{{ $attachment->AttachmentName }}</span>
-                    <span class="text-slate-400 text-sm mr-auto">.{{ $attachment->FileExtension }}</span>
-                </a>
+                <div class="flex items-center gap-3 p-3 rounded-xl hover:bg-slate-50 border border-slate-100 mb-2">
+                    <a href="{{ route('attachments.show', $attachment) }}" target="_blank"
+                        class="flex items-center gap-3 min-w-0 flex-1">
+                        <i class="fas fa-file text-slate-400 text-xl shrink-0"></i>
+                        <span class="font-bold text-slate-700 truncate">{{ $attachment->AttachmentName }}</span>
+                        <span class="text-slate-400 text-sm shrink-0">.{{ $attachment->FileExtension }}</span>
+                    </a>
+
+                    <form method="POST" action="{{ route('reports.attachments.destroy', [$report, $attachment]) }}"
+                        onsubmit="return confirm('هل انت متأكد من حذف هذا المرفق؟ هذا الإجراء غير قابل للتراجع.')">
+                        @csrf
+                        @method('DELETE')
+                        <button type="submit" title="حذف المرفق"
+                            class="w-8 h-8 flex items-center justify-center rounded-md bg-red-50 text-red-600 hover:bg-red-100">
+                            <i class="fas fa-trash text-xs"></i>
+                        </button>
+                    </form>
+                </div>
             @empty
                 <p class="text-slate-400 text-center py-4">لا توجد مرفقات لهذا البلاغ</p>
             @endforelse

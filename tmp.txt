@@ -1,4 +1,4 @@
-@extends('layouts.app')
+﻿@extends('layouts.app')
 
 @section('title', 'قائمة البلاغات - الشبكة الوطنية للطوارئ')
 @section('page-title', 'قائمة البلاغات')
@@ -372,6 +372,7 @@
     const toggleBtn = document.getElementById('toggle-filters-btn');
     const toggleIcon = document.getElementById('toggle-filters-icon');
 
+    // مغلق افتراضياً عند فتح الصفحة
     // مغلق افتراضياً عند فتح الصفحة
     filtersForm.classList.add('hidden');
     toggleIcon.classList.remove('rotate-180');

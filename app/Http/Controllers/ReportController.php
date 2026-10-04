@@ -397,30 +397,81 @@ class ReportController extends Controller
     }
 
     /**
-     * حفظ مرفق جديد للبلاغ.
+     * حفظ عدة مرفقات للبلاغ دفعة واحدة.
      */
     public function storeAttachment(Request $request, RecieveReport $report)
     {
         $request->validate([
             'AttachmentName' => ['required', 'in:صورة البلاغ,صورة متابعة البلاغ'],
-            // يقبل أي صيغة، بحد أقصى 100 ميجا
-            'attachment' => ['required', 'file', 'max:102400'],
+            // يقبل عدة ملفات معاً، كل ملف(any صيغة) بحد أقصى 100 ميجا
+            'attachment' => ['required', 'array', 'min:1'],
+            'attachment.*' => ['file', 'max:102400'],
         ], [
-            'attachment.file' => 'الملف المرفوع غير صالح.',
-            'attachment.max' => 'حجم الملف يجب ألا يتجاوز 100 ميجا.',
+            'attachment.array' => 'اختر ملف واحد على الأقل.',
+            'attachment.*.file' => 'أحد الملفات المرفوعة غير صالح.',
+            'attachment.*.max' => 'حجم كل ملف يجب ألا يتجاوز 100 ميجا.',
         ]);
 
-        $file = $request->file('attachment');
-        $path = $file->store('attachments', 'public');
+        $files = $request->file('attachment');
+        $storedPaths = [];
 
-        Attachment::create([
-            'AttachmentName' => $request->AttachmentName,
-            'ReportID' => $report->ID,
-            'FilePath' => $path,
-            'FileExtension' => $file->getClientOriginalExtension(),
-        ]);
+        try {
+            // كل الملفات أو لا شيء: لو فشلت عملية، تتراجع كل الملفاتالمرفوعة
+            DB::transaction(function () use ($files, $request, $report, &$storedPaths) {
+                foreach ($files as $file) {
+                    $path = $file->store('attachments', 'public');
+                    $storedPaths[] = $path;
 
-        return redirect()->route('reports.show', $report)->with('success', 'تم رفع المرفق بنجاح');
+                    Attachment::create([
+                        'AttachmentName' => $request->AttachmentName,
+                        'ReportID' => $report->ID,
+                        'FilePath' => $path,
+                        'FileExtension' => $file->getClientOriginalExtension(),
+                    ]);
+                }
+            });
+        } catch (\Throwable $e) {
+            Storage::disk('public')->delete($storedPaths);
+
+            return back()
+                ->withInput()
+                ->withErrors(['attachment' => 'حدث خطأ أثناء رفع المرفقات، حاول مرة أخرى.']);
+        }
+
+        $count = count($files);
+
+        return redirect()
+            ->route('reports.show', $report)
+            ->with('success', $count > 1 ? "تم رفع {$count} مرفقات بنجاح" : 'تم رفع المرفق بنجاح');
+    }
+
+    /**
+     * حذف مرفق واحد من بلاغ (الملف من الديسك + السجل من قاعدة البيانات).
+     */
+    public function destroyAttachment(Request $request, RecieveReport $report, Attachment $attachment)
+    {
+        // لازم المرفق يكون تابع للبلاغ نفسه، عشان تفادي حذف مرفق بلاغ تاني
+        abort_unless((int) $attachment->ReportID === (int) $report->ID, 404);
+
+        DB::transaction(function () use ($attachment, $report, $request) {
+            Storage::disk('public')->delete($attachment->FilePath);
+
+            $attachmentName = $attachment->AttachmentName;
+            $attachment->delete();
+
+            SystemRecord::create([
+                'USER_FULL_NAME' => auth()->user()->name,
+                'DEVICE_NAME' => substr($request->userAgent() ?? 'غير معروف', 0, 255),
+                'MACHINE_IP' => $request->ip(),
+                'TITLE' => 'حذف مرفق',
+                'DESCRIBTION' => "تم حذف المرفق ({$attachmentName}) من البلاغ رقم {$report->REPORT_REGISTER_NUMBER} بواسطة " . auth()->user()->name,
+                'CREATED_DATE' => now()->format('Y-m-d'),
+                'ISACTIVE' => '1',
+                'USER_ID' => auth()->id(),
+            ]);
+        });
+
+        return redirect()->route('reports.show', $report)->with('success', 'تم حذف المرفق بنجاح');
     }
 
     /**

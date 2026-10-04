@@ -83,6 +83,8 @@ Route::middleware(['auth'])->group(function () {
         ->name('reports.attachments.create');
     Route::post('/reports/{report}/attachments', [ReportController::class, 'storeAttachment'])
         ->name('reports.attachments.store');
+    Route::delete('/reports/{report}/attachments/{attachment}', [ReportController::class, 'destroyAttachment'])
+        ->name('reports.attachments.destroy');
 
     Route::get('/reports/{report}', [ReportController::class, 'show'])->name('reports.show');
     Route::get('/reports/{report}/edit', [ReportController::class, 'edit'])->name('reports.edit');
