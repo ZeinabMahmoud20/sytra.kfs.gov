@@ -140,7 +140,12 @@ class ReportController extends Controller
                 });
             })
             ->when($request->filled('reporting_sort'), fn($q) => $q->where('REPORTING_SORT', $request->reporting_sort))
-            ->when($request->filled('status'), fn($q) => $q->where('REQUEST_STATUS', $request->status))
+            ->when($request->filled('status'), function ($q) use ($request) {
+                if (is_array($request->status)) {
+                    return $q->whereIn('REQUEST_STATUS', $request->status);
+                }
+                return $q->where('REQUEST_STATUS', $request->status);
+            })
             ->when($request->filled('date_from'), fn($q) => $q->whereDate('REPORT_START_DATE', '>=', $request->date_from))
             ->when($request->filled('date_to'), fn($q) => $q->whereDate('REPORT_START_DATE', '<=', $request->date_to))
             ->when($request->filled('time_from') && $request->boolean('filter_by_time'), fn($q) => $q->whereTime('REPORT_START_TIME', '>=', $request->time_from))

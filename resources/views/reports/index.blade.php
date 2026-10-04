@@ -173,9 +173,17 @@
            class="px-4 py-2 font-bold whitespace-nowrap transition-colors border-b-2 {{ request('status') ? 'border-transparent text-slate-600 hover:text-primary' : 'border-primary text-primary' }}">
             كل البلاغات
         </a>
-        <a href="{{ route('reports.index', array_merge(request()->except(['status', 'page']), ['status' => 'تم استلام البلاغ'])) }}"
-           class="px-4 py-2 font-bold whitespace-nowrap transition-colors border-b-2 {{ request('status') === 'تم استلام البلاغ' ? 'border-primary text-primary' : 'border-transparent text-slate-600 hover:text-primary' }}">
-            البلاغات المستلمة
+        @php
+            $cur = request('status');
+            $isReceivedProcessing = false;
+            if (is_array($cur)) {
+                $vals = array_map('strval', $cur);
+                $isReceivedProcessing = in_array('تم استلام البلاغ', $vals) && in_array('قيد المعالجة', $vals);
+            }
+        @endphp
+        <a href="{{ route('reports.index', array_merge(request()->except(['status', 'page']), ['status' => ['تم استلام البلاغ', 'قيد المعالجة']])) }}"
+           class="px-4 py-2 font-bold whitespace-nowrap transition-colors border-b-2 {{ $isReceivedProcessing ? 'border-primary text-primary' : 'border-transparent text-slate-600 hover:text-primary' }}">
+            البلاغات المستلمة / قيد المعالجة
         </a>
     </div>
 </div>
