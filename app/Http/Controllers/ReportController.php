@@ -257,6 +257,8 @@ class ReportController extends Controller
             'injured.*.age' => ['required_with:injured', 'integer', 'min:1', 'max:150'],
             'injured.*.diagnosis' => ['nullable', 'string', 'max:500'],
             'injured.*.followup' => ['nullable', 'string'],
+            'INFECTED_NUM' => ['nullable', 'integer', 'min:0'],
+            'Deceased_Num' => ['nullable', 'integer', 'min:0'],
             'deceased' => ['nullable', 'array'],
             'deceased.*.name' => ['required_with:deceased', 'string', 'max:50'],
             'deceased.*.age' => ['required_with:deceased', 'integer', 'min:1', 'max:150'],
@@ -278,6 +280,7 @@ class ReportController extends Controller
         $oldData = $report->toArray();
 
         DB::transaction(function () use ($report, $validated, $startDate, $startTime, $wasLocked, $willBeLocked) {
+            $request = request();
             $reportData = [
                 'REPORTER_SSN' => $validated['REPORTER_SSN'],
                 'REPORTER_NAME' => $validated['REPORTER_NAME'],
@@ -291,12 +294,23 @@ class ReportController extends Controller
                 'Y_AXIS' => $validated['Y_AXIS'] ?? 0,
                 'DAMAGE' => $validated['DAMAGE'],
                 'PLACE_Accident' => $validated['PLACE_Accident'],
-                'Deceased_Num' => count($validated['deceased'] ?? []),
-                'INFECTED_NUM' => count($validated['injured'] ?? []),
+                'Deceased_Num' => $request->filled('Deceased_Num') ? (int) $request->Deceased_Num : ((isset($validated['deceased']) && is_array($validated['deceased'])) ? count($validated['deceased']) : 0),
+                'INFECTED_NUM' => $request->filled('INFECTED_NUM') ? (int) $request->INFECTED_NUM : ((isset($validated['injured']) && is_array($validated['injured'])) ? count($validated['injured']) : 0),
                 'REQUEST_STATUS' => $validated['REQUEST_STATUS'],
                 'REPORT_FOLLOWUP_NUMBER' => $validated['REPORT_FOLLOWUP_NUMBER'],
                 'NOTIFIED_AUTHORITIES' => $validated['NOTIFIED_AUTHORITIES'] ?? null,
             ];
+
+            if ($request->filled('Deceased_Num')) {
+                $reportData['Deceased_Num'] = (int) $request->Deceased_Num;
+            } else {
+                $reportData['Deceased_Num'] = count($validated['deceased'] ?? []);
+            }
+            if ($request->filled('INFECTED_NUM')) {
+                $reportData['INFECTED_NUM'] = (int) $request->INFECTED_NUM;
+            } else {
+                $reportData['INFECTED_NUM'] = count($validated['injured'] ?? []);
+            }
 
             if ($willBeLocked && !$wasLocked) {
                 // أول مرة يتقفل فيها البلاغ: نسجل تاريخ ووقت القفل، ومين اللي قفله
@@ -642,6 +656,8 @@ class ReportController extends Controller
             'injured.*.birth_date' => ['required_with:injured', 'integer', 'min:0', 'max:150'],
             'injured.*.diagnosis' => ['nullable', 'string', 'max:500'],
             'injured.*.followup' => ['nullable', 'string'],
+            'INFECTED_NUM' => ['nullable', 'integer', 'min:0'],
+            'Deceased_Num' => ['nullable', 'integer', 'min:0'],
             'deceased' => ['nullable', 'array'],
             'deceased.*.name' => ['required_with:deceased', 'string', 'max:50'],
             'deceased.*.birth_date' => ['required_with:deceased', 'integer', 'min:0', 'max:150'],
@@ -657,6 +673,7 @@ class ReportController extends Controller
         $startTime = $isAdmin ? $validated['REPORT_START_TIME'] : now()->format('H:i:s');
 
         $report = DB::transaction(function () use ($validated, $startDate, $startTime) {
+            $request = request();
             $report = RecieveReport::create([
                 'REPORTER_SSN' => $validated['REPORTER_SSN'],
                 'REPORTER_NAME' => $validated['REPORTER_NAME'],
@@ -671,8 +688,8 @@ class ReportController extends Controller
                 'Y_AXIS' => $validated['Y_AXIS'] ?? 0,
                 'DAMAGE' => $validated['DAMAGE'],
                 'PLACE_Accident' => $validated['PLACE_Accident'],
-                'Deceased_Num' => count($validated['deceased'] ?? []),
-                'INFECTED_NUM' => count($validated['injured'] ?? []),
+            'Deceased_Num' => $request->filled('Deceased_Num') ? (int) $request->Deceased_Num : ((isset($validated['deceased']) && is_array($validated['deceased'])) ? count($validated['deceased']) : 0),
+            'INFECTED_NUM' => $request->filled('INFECTED_NUM') ? (int) $request->INFECTED_NUM : ((isset($validated['injured']) && is_array($validated['injured'])) ? count($validated['injured']) : 0),
                 'REPORT_END_DATE' => null,
                 'REPORT_END_TIME' => null,
                 'LOCKED_BY' => null,

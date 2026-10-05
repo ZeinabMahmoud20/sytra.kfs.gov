@@ -34,6 +34,9 @@
                     <div class="p-6 flex items-center justify-between flex-wrap gap-3">
                         <div>
                             <p class="font-bold text-primary text-lg">{{ $item->entity->name }}</p>
+                            @if ($item->entity->main_location)
+                                <p class="text-slate-600 text-sm mt-1">{{ $item->entity->main_location }}</p>
+                            @endif
                             @if ($item->response_at)
                                 <p class="text-xs text-slate-400">آخر رد: {{ $item->response_at->format('h:i A') }}</p>
                             @endif

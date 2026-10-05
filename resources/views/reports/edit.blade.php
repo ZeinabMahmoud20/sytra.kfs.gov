@@ -94,6 +94,10 @@
                                 value="{{ old('REPORTER_SSN', $report->REPORTER_SSN) }}" maxlength="14" pattern="[0-9]{14}" inputmode="numeric"
                                 class="w-full px-4 py-3 rounded-xl border border-slate-200 bg-white focus:ring-2 focus:ring-accent/20 focus:border-accent outline-none transition-all disabled:opacity-60 disabled:cursor-not-allowed">
                         </div>
+                        <div class="space-y-2">
+                            <label class="block text-sm font-bold text-slate-500 mb-3">اسم متلقي البلاغ</label>
+                            <div class="w-full px-4 py-3 rounded-xl border border-slate-200 bg-slate-100 text-slate-600 font-bold">{{ $report->user?->name ?? 'online' }}</div>
+                        </div>
                     </div>
                 </div>
 
@@ -198,18 +202,31 @@
                                 class="w-full px-4 py-3 rounded-xl border border-slate-200 bg-slate-50 focus:bg-white focus:ring-2 focus:ring-accent/20 focus:border-accent outline-none transition-all disabled:opacity-60 disabled:cursor-not-allowed">
                         </div>
 
+                        <div class="space-y-2">
+                            <label class="block text-sm font-black text-slate-600">عدد المصابين</label>
+                            <input type="number" name="INFECTED_NUM" min="0" step="1" @disabled($isLocked)
+                                value="{{ old('INFECTED_NUM', $report->INFECTED_NUM) }}"
+                                class="w-full px-4 py-3 rounded-xl border border-slate-200 bg-slate-50 focus:bg-white focus:ring-2 focus:ring-accent/20 focus:border-accent outline-none transition-all disabled:opacity-60 disabled:cursor-not-allowed">
+                        </div>
+
+                        <div class="space-y-2">
+                            <label class="block text-sm font-black text-slate-600">عدد الوفيات</label>
+                            <input type="number" name="Deceased_Num" min="0" step="1" @disabled($isLocked)
+                                value="{{ old('Deceased_Num', $report->Deceased_Num) }}"
+                                class="w-full px-4 py-3 rounded-xl border border-slate-200 bg-slate-50 focus:bg-white focus:ring-2 focus:ring-accent/20 focus:border-accent outline-none transition-all disabled:opacity-60 disabled:cursor-not-allowed">
+                        </div>
+
                         <div class="space-y-2 md:col-span-2">
-                            <label class="block text-sm font-black text-slate-600">ملخص البلاغ والوصف الفني <span class="text-red-500">*</span></label>
+                            <label class="block text-sm font-black text-slate-600">ملخص البلاغ / الوصف الفني <span class="text-red-500">*</span></label>
                             <textarea name="DAMAGE" required rows="4" @disabled($isLocked)
                                 class="w-full px-4 py-3 rounded-xl border border-slate-200 bg-slate-50 focus:bg-white focus:ring-2 focus:ring-accent/20 focus:border-accent outline-none transition-all disabled:opacity-60 disabled:cursor-not-allowed">{{ old('DAMAGE', $report->DAMAGE) }}</textarea>
                         </div>
 
-                        <div class="space-y-2 md:col-span-2">
+                        <div class="space-y-2">
                             <label class="block text-sm font-black text-slate-600">حالة البلاغ <span class="text-red-500">*</span></label>
                             <select name="REQUEST_STATUS" required @disabled($isLocked)
                                 class="w-full px-4 py-3 rounded-xl border border-slate-200 bg-slate-50 focus:bg-white focus:ring-2 focus:ring-accent/20 focus:border-accent outline-none transition-all disabled:opacity-60 disabled:cursor-not-allowed">
                                 @foreach ($statuses as $status)
-                                {{-- حالة "تم الانتهاء" (قفل البلاغ) تظهر للمشرف العام / الادمن بس --}}
                                 @if ($status === 'تم الانتهاء' && !$canLockReport)
                                 @continue
                                 @endif
@@ -222,7 +239,7 @@
                         </div>
 
                         <div class="space-y-2 md:col-span-2">
-                            <label class="block text-sm font-black text-slate-600">الإجراءات المتخذة</label>
+                            <label class="block text-sm font-black text-slate-600">إجراءات البلاغ</label>
                             <textarea name="NOTIFIED_AUTHORITIES" rows="4" @disabled($isLocked)
                                 placeholder="اكتب الإجراءات المتخذة تجاه البلاغ..."
                                 class="w-full px-4 py-3 rounded-xl border border-slate-200 bg-slate-50 focus:bg-white focus:ring-2 focus:ring-accent/20 focus:border-accent outline-none transition-all disabled:opacity-60 disabled:cursor-not-allowed">{{ old('NOTIFIED_AUTHORITIES', $report->NOTIFIED_AUTHORITIES) }}</textarea>

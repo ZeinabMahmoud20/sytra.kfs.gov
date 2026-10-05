@@ -11,19 +11,43 @@
                 <h2 class="text-2xl font-black">بلاغ رقم {{ $report->REPORT_REGISTER_NUMBER }}</h2>
                 <p class="text-slate-300 text-sm">{{ $report->REPORT_START_DATE }} - {{ $report->REPORT_START_TIME }}</p>
             </div>
-            <span class="px-4 py-2 bg-white/10 rounded-full font-bold">{{ $report->REQUEST_STATUS }}</span>
+            @php
+                $statusClasses = match ($report->REQUEST_STATUS) {
+                    'تم استلام البلاغ' => 'bg-red-500/20 text-white',
+                    'قيد المعالجة' => 'bg-yellow-500/20 text-white',
+                    'تم التنفيذ' => 'bg-green-500/20 text-white',
+                    'تم الانتهاء' => 'bg-blue-500/20 text-white',
+                    default => 'bg-white/10 text-white',
+                };
+            @endphp
+            <span class="px-4 py-2 rounded-full font-bold {{ $statusClasses }}">{{ $report->REQUEST_STATUS }}</span>
         </div>
 
         <div class="bg-white rounded-3xl shadow-sm border border-slate-100 p-6 grid grid-cols-1 md:grid-cols-2 gap-4">
             <div><span class="text-slate-400 text-sm block">اسم المبلغ</span><span class="font-bold">{{ $report->REPORTER_NAME }}</span></div>
             <div><span class="text-slate-400 text-sm block">الرقم القومي</span><span class="font-bold">{{ $report->REPORTER_SSN }}</span></div>
             <div><span class="text-slate-400 text-sm block">رقم الهاتف</span><span class="font-bold">{{ $report->REPORT_FOLLOWUP_NUMBER }}</span></div>
+            <div><span class="text-slate-400 text-sm block">اسم متلقي البلاغ</span><span class="font-bold">{{ $report->user?->name ?? 'online' }}</span></div>
             <div><span class="text-slate-400 text-sm block">جهة البلاغ</span><span class="font-bold">{{ $report->reportingType?->AUTHORITY ?? $report->REPORTING_Auth ?? '-' }}</span></div>
             <div><span class="text-slate-400 text-sm block">نوع البلاغ</span><span class="font-bold">{{ $report->reportingType->REPORT_SORT ?? '-' }}</span></div>
             <div><span class="text-slate-400 text-sm block">المركز</span><span class="font-bold">{{ $report->city->CITY_NAME ?? '-' }}</span></div>
             <div><span class="text-slate-400 text-sm block">المدينة/القرية</span><span class="font-bold">{{ $report->village->VILLAGE_NAME ?? '-' }}</span></div>
+            @if (!is_null($report->INFECTED_NUM) && $report->INFECTED_NUM > 0)
+                <div><span class="text-slate-400 text-sm block">عدد المصابين</span><span class="font-bold">{{ $report->INFECTED_NUM }}</span></div>
+            @elseif ($report->injuries->isNotEmpty())
+                <div><span class="text-slate-400 text-sm block">عدد المصابين</span><span class="font-bold">{{ $report->injuries->count() }}</span></div>
+            @endif
+            @if (!is_null($report->Deceased_Num) && $report->Deceased_Num > 0)
+                <div><span class="text-slate-400 text-sm block">عدد الوفيات</span><span class="font-bold">{{ $report->Deceased_Num }}</span></div>
+            @elseif ($report->deaths->isNotEmpty())
+                <div><span class="text-slate-400 text-sm block">عدد الوفيات</span><span class="font-bold">{{ $report->deaths->count() }}</span></div>
+            @endif
             <div class="md:col-span-2"><span class="text-slate-400 text-sm block">مكان الحادث</span><span class="font-bold">{{ $report->PLACE_Accident }}</span></div>
             <div class="md:col-span-2"><span class="text-slate-400 text-sm block">ملخص البلاغ</span><p class="font-bold whitespace-pre-line">{{ $report->DAMAGE }}</p></div>
+            <div class="md:col-span-2"><span class="text-slate-400 text-sm block">الوصف الفني</span><p class="font-bold whitespace-pre-line">{{ $report->DAMAGE }}</p></div>
+            @if (!empty($report->NOTIFIED_AUTHORITIES))
+                <div class="md:col-span-2"><span class="text-slate-400 text-sm block">إجراءات البلاغ</span><p class="font-bold whitespace-pre-line">{{ $report->NOTIFIED_AUTHORITIES }}</p></div>
+            @endif
         </div>
 
         @if ($report->injuries->isNotEmpty())

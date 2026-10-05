@@ -179,6 +179,18 @@
                             class="w-full px-4 py-3 rounded-xl border border-slate-200 bg-slate-50 focus:bg-white focus:ring-2 focus:ring-accent/20 focus:border-accent outline-none transition-all">
                     </div>
 
+                    <div class="space-y-2">
+                        <label class="block text-sm font-black text-slate-600">عدد المصابين</label>
+                        <input type="number" name="INFECTED_NUM" min="0" step="1" value="{{ old('INFECTED_NUM') }}"
+                            class="w-full px-4 py-3 rounded-xl border border-slate-200 bg-slate-50 focus:bg-white focus:ring-2 focus:ring-accent/20 focus:border-accent outline-none transition-all">
+                    </div>
+
+                    <div class="space-y-2">
+                        <label class="block text-sm font-black text-slate-600">عدد الوفيات</label>
+                        <input type="number" name="Deceased_Num" min="0" step="1" value="{{ old('Deceased_Num') }}"
+                            class="w-full px-4 py-3 rounded-xl border border-slate-200 bg-slate-50 focus:bg-white focus:ring-2 focus:ring-accent/20 focus:border-accent outline-none transition-all">
+                    </div>
+
                     <div class="space-y-2 md:col-span-2">
                         <label class="block text-sm font-black text-slate-600">ملخص البلاغ والوصف الفني <span
                                 class="text-red-500">*</span></label>

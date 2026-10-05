@@ -221,7 +221,8 @@
             $statusClasses = match ($report->REQUEST_STATUS) {
                 'تم استلام البلاغ' => 'bg-red-100 text-red-600',
                 'قيد المعالجة' => 'bg-yellow-100 text-yellow-700',
-                'تم التنفيذ', 'تم الانتهاء' => 'bg-green-100 text-green-700',
+                'تم التنفيذ' => 'bg-green-100 text-green-700',
+                'تم الانتهاء' => 'bg-blue-100 text-blue-700',
                 default => 'bg-slate-100 text-slate-600',
             };
         @endphp

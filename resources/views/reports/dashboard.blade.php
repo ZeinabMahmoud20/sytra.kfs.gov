@@ -138,7 +138,7 @@
                                 <span class="px-3 py-1 rounded-full text-sm font-bold bg-green-100 text-green-700">{{ $city->executed_count }}</span>
                             </td>
                             <td class="px-5 py-4 text-center">
-                                <span class="px-3 py-1 rounded-full text-sm font-bold bg-purple-100 text-purple-700">{{ $city->finished_count }}</span>
+                                <span class="px-3 py-1 rounded-full text-sm font-bold bg-blue-100 text-blue-700">{{ $city->finished_count }}</span>
                             </td>
                             <td class="px-5 py-4 text-center">
                                 <div class="flex items-center justify-center gap-2">

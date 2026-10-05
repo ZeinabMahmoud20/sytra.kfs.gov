@@ -54,7 +54,7 @@
             ['label' => 'إجمالي البلاغات', 'icon' => 'fa-layer-group', 'cls' => 'bg-blue-50 text-blue-600', 'value' => $totals['total']],
             ['label' => 'تم التنفيذ', 'icon' => 'fa-check-circle', 'cls' => 'bg-green-50 text-green-600', 'value' => $totals['executed']],
             ['label' => 'قيد المعالجة', 'icon' => 'fa-spinner', 'cls' => 'bg-yellow-50 text-yellow-600', 'value' => $totals['processing']],
-            ['label' => 'تم الانتهاء', 'icon' => 'fa-flag-checkered', 'cls' => 'bg-purple-50 text-purple-600', 'value' => $totals['finished']],
+            ['label' => 'تم الانتهاء', 'icon' => 'fa-flag-checkered', 'cls' => 'bg-blue-50 text-blue-600', 'value' => $totals['finished']],
             ['label' => 'تم استلام البلاغ', 'icon' => 'fa-inbox', 'cls' => 'bg-slate-100 text-slate-600', 'value' => $totals['received']],
         ];
         @endphp
