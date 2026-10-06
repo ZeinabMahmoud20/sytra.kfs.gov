@@ -1,7 +1,15 @@
 <div dir="rtl" class="p-6">
     <div class="flex items-center justify-between mb-4">
         <h1 class="text-xl font-bold">تقييم الجهات اليومي</h1>
-        <input type="text" wire:ignore id="eval-date-dup" class="border rounded-lg p-2" value="{{ $date }}">
+<div class="flex items-center gap-2">
+    <span class="px-3 py-2 bg-gray-100 text-gray-800 rounded-lg text-sm font-semibold">
+        {{ \Carbon\Carbon::parse($date)->format('d/m/Y') }}
+    </span>
+
+    <div wire:ignore>
+        <input type="text" id="eval-date" class="border rounded-lg p-2" value="{{ $date }}">
+    </div>
+</div>
     </div>
 
     @if (session('success'))
