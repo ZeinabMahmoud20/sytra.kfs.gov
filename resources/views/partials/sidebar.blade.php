@@ -316,7 +316,7 @@
             {{-- 7) تقييم الجهات - زي ما هي من غير تعديل --}}
             @canany(['evaluations.evaluate', 'evaluations.manage', 'evaluations.dashboard'])
                 @php
-                    $evalRoutes = ['evaluations.entities', 'evaluations.daily', 'evaluations.dashboard'];
+                    $evalRoutes = ['evaluations.entities', 'evaluations.daily', 'evaluations.dashboard', 'evaluations.completion'];
                     $isEvalActive = request()->routeIs($evalRoutes);
                 @endphp
 
@@ -359,6 +359,15 @@
                                 لوحة تحكم التقييم
                             </a>
                         @endcan
+
+                        @canany(['evaluations.evaluate', 'evaluations.manage', 'evaluations.dashboard'])
+                            <a href="{{ route('evaluations.completion') }}"
+                                class="flex items-center gap-3 px-4 py-2 rounded-lg transition-all duration-300 text-sm
+                            {{ request()->routeIs('evaluations.completion') ? 'bg-white/15 text-white font-bold' : 'hover:bg-white/10 text-white/80' }}">
+                                <i class="fas fa-percent w-5 text-center text-accent"></i>
+                                نسبة التقييم اليومي
+                            </a>
+                        @endcanany
                     </div>
                 </div>
             @endcanany

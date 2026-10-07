@@ -31,4 +31,9 @@ class Village extends Model
         return $this->hasMany(RecieveReport::class, 'VILLAGE', 'VILLAGE_ID');
     }
 
+    public function parent()
+    {
+        return $this->belongsTo(Village::class, 'FOREIGN_VILLAGE_ID', 'VILLAGE_ID');
+    }
+
 }

@@ -195,6 +195,7 @@ Route::middleware('can:tmam.view')->group(function () {
     Route::view('/entities', 'evaluations.entities')->name('entities');
     Route::view('/daily', 'evaluations.daily')->name('daily');
     Route::view('/dashboard', 'evaluations.dashboard')->name('dashboard');
+    Route::view('/completion', 'evaluations.completion')->name('completion');
 });
 });
 

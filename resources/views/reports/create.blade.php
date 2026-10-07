@@ -179,18 +179,6 @@
                             class="w-full px-4 py-3 rounded-xl border border-slate-200 bg-slate-50 focus:bg-white focus:ring-2 focus:ring-accent/20 focus:border-accent outline-none transition-all">
                     </div>
 
-                    <div class="space-y-2">
-                        <label class="block text-sm font-black text-slate-600">عدد المصابين</label>
-                        <input type="number" name="INFECTED_NUM" min="0" step="1" value="{{ old('INFECTED_NUM') }}"
-                            class="w-full px-4 py-3 rounded-xl border border-slate-200 bg-slate-50 focus:bg-white focus:ring-2 focus:ring-accent/20 focus:border-accent outline-none transition-all">
-                    </div>
-
-                    <div class="space-y-2">
-                        <label class="block text-sm font-black text-slate-600">عدد الوفيات</label>
-                        <input type="number" name="Deceased_Num" min="0" step="1" value="{{ old('Deceased_Num') }}"
-                            class="w-full px-4 py-3 rounded-xl border border-slate-200 bg-slate-50 focus:bg-white focus:ring-2 focus:ring-accent/20 focus:border-accent outline-none transition-all">
-                    </div>
-
                     <div class="space-y-2 md:col-span-2">
                         <label class="block text-sm font-black text-slate-600">ملخص البلاغ والوصف الفني <span
                                 class="text-red-500">*</span></label>
@@ -202,8 +190,16 @@
 
             {{-- المصابون --}}
             <div class="p-6 bg-blue-50 rounded-2xl border border-blue-100 space-y-4" x-data="{ rows: [] }">
-                <div class="flex items-center justify-between">
-                    <h4 class="font-black text-primary border-r-4 border-accent pr-3">بيانات المصابين (اختياري)</h4>
+                <div class="flex flex-wrap items-center justify-between gap-4">
+                    <div class="flex flex-wrap items-center gap-4">
+                        <h4 class="font-black text-primary border-r-4 border-accent pr-3">بيانات المصابين (اختياري)</h4>
+                        <div class="flex items-center gap-2">
+                            <label for="infected-num" class="text-sm font-black text-slate-600">عدد المصابين</label>
+                            <input type="number" name="INFECTED_NUM" id="infected-num" min="0" step="1"
+                                value="{{ old('INFECTED_NUM') }}"
+                                class="w-24 px-3 py-2 rounded-lg border border-slate-200 bg-white text-center font-bold focus:ring-2 focus:ring-accent/20 focus:border-accent outline-none transition-all">
+                        </div>
+                    </div>
                     <button type="button" onclick="addInjuredRow()"
                         class="bg-blue-600 hover:bg-blue-700 text-white text-sm font-bold px-4 py-2 rounded-lg flex items-center gap-2">
                         <i class="fas fa-plus"></i> إضافة مصاب
@@ -214,8 +210,16 @@
 
             {{-- المتوفون --}}
             <div class="p-6 bg-red-50 rounded-2xl border border-red-100 space-y-4">
-                <div class="flex items-center justify-between">
-                    <h4 class="font-black text-primary border-r-4 border-accent pr-3">بيانات المتوفين (اختياري)</h4>
+                <div class="flex flex-wrap items-center justify-between gap-4">
+                    <div class="flex flex-wrap items-center gap-4">
+                        <h4 class="font-black text-primary border-r-4 border-accent pr-3">بيانات المتوفين (اختياري)</h4>
+                        <div class="flex items-center gap-2">
+                            <label for="deceased-num" class="text-sm font-black text-slate-600">عدد الوفيات</label>
+                            <input type="number" name="Deceased_Num" id="deceased-num" min="0" step="1"
+                                value="{{ old('Deceased_Num') }}"
+                                class="w-24 px-3 py-2 rounded-lg border border-slate-200 bg-white text-center font-bold focus:ring-2 focus:ring-accent/20 focus:border-accent outline-none transition-all">
+                        </div>
+                    </div>
                     <button type="button" onclick="addDeceasedRow()"
                         class="bg-red-600 hover:bg-red-700 text-white text-sm font-bold px-4 py-2 rounded-lg flex items-center gap-2">
                         <i class="fas fa-plus"></i> إضافة متوفى
@@ -397,7 +401,11 @@
                 villages.forEach(v => {
                     const opt = document.createElement('option');
                     opt.value = v.VILLAGE_ID;
-                    opt.textContent = v.VILLAGE_NAME;
+                    let name = v.VILLAGE_NAME;
+                    if (v.FOREIGN_VILLAGE_ID && v.PARENT_NAME) {
+                        name = v.VILLAGE_NAME + ' (تابعة لـ ' + v.PARENT_NAME + ')';
+                    }
+                    opt.textContent = name;
                     opt.dataset.x = v.X_AXIS ?? 0;
                     opt.dataset.y = v.Y_AXIS ?? 0;
                     if (preselect && String(preselect) === String(v.VILLAGE_ID)) opt.selected = true;
@@ -462,6 +470,34 @@
 
         document.getElementById('deceased-rows').appendChild(clone);
     }
+
+    // ربط عدد المصابين/الوفيات بعدد الصفوف المدخلة:
+    // القيمة المعروضة = الأكبر بين (ما كتبه المستخدم بنفسه) و (عدد الأسماء المسجلة)
+    function bindCountSync(inputId, rowsContainerId) {
+        const input = document.getElementById(inputId);
+        const container = document.getElementById(rowsContainerId);
+        if (!input || !container) return;
+
+        let base = parseInt(input.value, 10) || 0;
+        const sync = () => {
+            input.value = Math.max(base, container.children.length);
+        };
+
+        // تسجيل ما يكتبه المستخدم فقط أثناء الكتابة (من غير ما نعيد كتابة الحقل وسط إصاباته)
+        input.addEventListener('input', () => {
+            base = parseInt(input.value, 10) || 0;
+        });
+        // إجبار القيمة على الأكبر بعد ما يسيب الحقل أو عند إرسال الفورم
+        input.addEventListener('change', sync);
+        if (input.form) input.form.addEventListener('submit', sync);
+
+        // أي إضافة/حذف صف بيغيّر أبناء الـ container فيتحدّث العداد تلقائياً
+        new MutationObserver(sync).observe(container, { childList: true });
+
+        sync();
+    }
+    bindCountSync('infected-num', 'injured-rows');
+    bindCountSync('deceased-num', 'deceased-rows');
 
     // إعادة تحميل الاختيارات القديمة بعد خطأ Validation (لو المستخدم رجع لنفس الصفحة)
     @if(old('REPORTING_Auth'))

@@ -44,7 +44,6 @@
             @endif
             <div class="md:col-span-2"><span class="text-slate-400 text-sm block">مكان الحادث</span><span class="font-bold">{{ $report->PLACE_Accident }}</span></div>
             <div class="md:col-span-2"><span class="text-slate-400 text-sm block">ملخص البلاغ</span><p class="font-bold whitespace-pre-line">{{ $report->DAMAGE }}</p></div>
-            <div class="md:col-span-2"><span class="text-slate-400 text-sm block">الوصف الفني</span><p class="font-bold whitespace-pre-line">{{ $report->DAMAGE }}</p></div>
             @if (!empty($report->NOTIFIED_AUTHORITIES))
                 <div class="md:col-span-2"><span class="text-slate-400 text-sm block">إجراءات البلاغ</span><p class="font-bold whitespace-pre-line">{{ $report->NOTIFIED_AUTHORITIES }}</p></div>
             @endif

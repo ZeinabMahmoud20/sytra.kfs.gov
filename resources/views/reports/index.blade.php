@@ -414,7 +414,11 @@
                 list.forEach(v => {
                     const opt = document.createElement('option');
                     opt.value = v.VILLAGE_ID;
-                    opt.textContent = v.VILLAGE_NAME;
+                    let name = v.VILLAGE_NAME;
+                    if (v.FOREIGN_VILLAGE_ID && v.PARENT_NAME) {
+                        name = v.VILLAGE_NAME + ' (تابعة لـ ' + v.PARENT_NAME + ')';
+                    }
+                    opt.textContent = name;
                     if (preselectMadina && String(preselectMadina) === String(v.VILLAGE_ID)) opt.selected = true;
                     filterMadina.appendChild(opt);
                 });
@@ -427,7 +431,11 @@
                 list.forEach(v => {
                     const opt = document.createElement('option');
                     opt.value = v.VILLAGE_ID;
-                    opt.textContent = v.VILLAGE_NAME;
+                    let name = v.VILLAGE_NAME;
+                    if (v.FOREIGN_VILLAGE_ID && v.PARENT_NAME) {
+                        name = v.VILLAGE_NAME + ' (تابعة لـ ' + v.PARENT_NAME + ')';
+                    }
+                    opt.textContent = name;
                     if (preselectVillage && String(preselectVillage) === String(v.VILLAGE_ID)) opt.selected = true;
                     filterVillage.appendChild(opt);
                 });

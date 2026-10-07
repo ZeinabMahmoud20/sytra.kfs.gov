@@ -267,7 +267,9 @@ class ReportController extends Controller
             ],
             $this->reportValidationMessages(),
             $this->reportValidationAttributes()
-        )->validate();
+        )->after(function ($validator) use ($request) {
+            $this->validateCountsAgainstRows($validator, $request);
+        })->validate();
 
         $isAdmin = auth()->user()->hasRole('مشرف عام');
         $startDate = $isAdmin ? $validated['REPORT_START_DATE'] : $report->REPORT_START_DATE;
@@ -620,10 +622,20 @@ class ReportController extends Controller
             ? $query->where('VILLAGE_SORT', 'مدينة')
             : $query->where('VILLAGE_SORT', '!=', 'مدينة');
 
-        $villages = $query->orderBy('VILLAGE_NAME')
-            ->get(['VILLAGE_ID', 'VILLAGE_NAME', 'VILLAGE_SORT', 'X_AXIS', 'Y_AXIS']);
+        $villages = $query->with('parent')->orderBy('VILLAGE_NAME')
+            ->get(['VILLAGE_ID', 'VILLAGE_NAME', 'VILLAGE_SORT', 'X_AXIS', 'Y_AXIS', 'FOREIGN_VILLAGE_ID']);
 
-        return response()->json($villages);
+        return response()->json($villages->map(function ($v) {
+            return [
+                'VILLAGE_ID' => $v->VILLAGE_ID,
+                'VILLAGE_NAME' => $v->VILLAGE_NAME,
+                'VILLAGE_SORT' => $v->VILLAGE_SORT,
+                'X_AXIS' => $v->X_AXIS,
+                'Y_AXIS' => $v->Y_AXIS,
+                'FOREIGN_VILLAGE_ID' => $v->FOREIGN_VILLAGE_ID,
+                'PARENT_NAME' => $v->parent ? $v->parent->VILLAGE_NAME : null,
+            ];
+        }));
     }
 
     public function store(Request $request)
@@ -666,7 +678,9 @@ class ReportController extends Controller
             ],
             $this->reportValidationMessages(),
             $this->reportValidationAttributes()
-        )->validate();
+        )->after(function ($validator) use ($request) {
+            $this->validateCountsAgainstRows($validator, $request);
+        })->validate();
 
         $isAdmin = auth()->user()->hasRole('مشرف عام');
         $startDate = $isAdmin ? $validated['REPORT_START_DATE'] : now()->format('Y-m-d');
@@ -753,6 +767,36 @@ class ReportController extends Controller
             ->value('max_num');
 
         return 'REP-' . (((int) $lastNumber) + 1);
+    }
+
+    /**
+     * التأكد من أن عدد المصابين/الوفيات المكتوب في الفورم لا يقل عن عدد
+     * الأسماء المسجلة فعلياً (العدد الأكبر هو المعتمد).
+     *
+     * @param  \Illuminate\Validation\Validator  $validator
+     */
+    protected function validateCountsAgainstRows($validator, Request $request): void
+    {
+        $checks = [
+            'INFECTED_NUM' => ['rows' => 'injured', 'label' => 'عدد المصابين'],
+            'Deceased_Num' => ['rows' => 'deceased', 'label' => 'عدد الوفيات'],
+        ];
+
+        foreach ($checks as $field => $check) {
+            if (! $request->filled($field)) {
+                continue;
+            }
+
+            $rows = $request->input($check['rows']);
+            $rowCount = is_array($rows) ? count($rows) : 0;
+
+            if ((int) $request->input($field) < $rowCount) {
+                $validator->errors()->add(
+                    $field,
+                    "{$check['label']} لا يمكن أن يقل عن عدد الأسماء المسجلة ({$rowCount})."
+                );
+            }
+        }
     }
 
     /**
