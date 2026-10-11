@@ -10,7 +10,9 @@ Artisan::command('inspire', function () {
     $this->comment(Inspiring::quote());
 })->purpose('Display an inspiring quote');
 Schedule::command(GenerateDailyAttendances::class)
-    ->dailyAt('11:27');
+    ->dailyAt('00:05')
+    ->timezone('Africa/Cairo')
+    ->withoutOverlapping();
 Schedule::command(CalculateMonthlyEvaluations::class, [
     '--year'  => now()->year,
     '--month' => now()->month,
