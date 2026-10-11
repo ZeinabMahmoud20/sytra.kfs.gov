@@ -2,9 +2,12 @@
 
 namespace App\Http\Controllers;
 
+use App\Exports\CityStatsExport;
 use App\Models\City;
 use App\Models\RecieveReport;
+use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\Request;
+use Maatwebsite\Excel\Facades\Excel;
 
 /**
  * إحصائيات شهرية للبلاغات حسب المركز/المدينة مع رسم بياني.
@@ -25,13 +28,13 @@ class MonthlyReportStatsController extends Controller
         'received'  => 'تم استلام البلاغ',
     ];
 
-    public function index(Request $request)
+    /**
+     * بناء نتيجة الإحصائيات (صفوف المراكز/المدن + الإجماليات) للشهر والسنة.
+     *
+     * @return array{0: \Illuminate\Support\Collection, 1: array}
+     */
+    protected function buildStats(int $month, int $year): array
     {
-        $month = (int) $request->input('month', now()->month);
-        $year  = (int) $request->input('year', now()->year);
-
-        $monthName = self::MONTHS[$month] ?? '';
-
         $applyFilter = function ($query) use ($month, $year) {
             $query->whereYear('REPORT_START_DATE', $year)
                 ->whereMonth('REPORT_START_DATE', $month);
@@ -63,7 +66,8 @@ class MonthlyReportStatsController extends Controller
             ->map(fn ($city) => tap($city, fn ($c) => $c->completion_rate = $c->total_count > 0
                 ? round(($c->finished_count / $c->total_count) * 100, 1)
                 : 0))
-            ->sortByDesc(fn ($city) => [$city->completion_rate, $city->finished_count, $city->total_count]);
+            ->sortByDesc(fn ($city) => [$city->completion_rate, $city->finished_count, $city->total_count])
+            ->values();
 
         $totals = [
             'total'      => $rowStats->sum('total_count'),
@@ -72,6 +76,18 @@ class MonthlyReportStatsController extends Controller
             'executed'   => $rowStats->sum('executed_count'),
             'finished'   => $rowStats->sum('finished_count'),
         ];
+
+        return [$rowStats, $totals];
+    }
+
+    public function index(Request $request)
+    {
+        $month = (int) $request->input('month', now()->month);
+        $year  = (int) $request->input('year', now()->year);
+
+        $monthName = self::MONTHS[$month] ?? '';
+
+        [$rowStats, $totals] = $this->buildStats($month, $year);
 
         $years = RecieveReport::whereNotNull('REPORT_START_DATE')
             ->selectRaw('YEAR(REPORT_START_DATE) as y')
@@ -102,5 +118,73 @@ class MonthlyReportStatsController extends Controller
             'statuses'   => array_values(self::STATUSES),
             'chartTotals' => $totals,
         ]);
+    }
+
+    /**
+     * تصدير إحصائيات المراكز والمدن إلى ملف Excel.
+     */
+    public function exportExcel(Request $request)
+    {
+        $month = (int) $request->input('month', now()->month);
+        $year  = (int) $request->input('year', now()->year);
+
+        [$rowStats, $totals] = $this->buildStats($month, $year);
+
+        $fileName = 'إحصائيات-المراكز-' . (self::MONTHS[$month] ?? '') . '-' . $year . '.xlsx';
+
+        return Excel::download(new CityStatsExport($rowStats, $totals, $month, $year), $fileName);
+    }
+
+    /**
+     * تصدير إحصائيات المراكز والمدن إلى ملف PDF.
+     */
+    public function exportPdf(Request $request)
+    {
+        $month = (int) $request->input('month', now()->month);
+        $year  = (int) $request->input('year', now()->year);
+
+        [$rowStats, $totals] = $this->buildStats($month, $year);
+
+        // معالجة النصوص العربية (وصل الحروف ببعض) قبل ما تدخل الـ PDF
+        $arabic = new \ArPHP\I18N\Arabic();
+
+        $rows = $rowStats->map(fn ($city) => [
+            'name'            => $arabic->utf8Glyphs($city->CITY_NAME ?? ''),
+            'total_count'     => $city->total_count,
+            'received_count'  => $city->received_count,
+            'processing_count' => $city->processing_count,
+            'executed_count'  => $city->executed_count,
+            'finished_count'  => $city->finished_count,
+            'completion_rate' => $city->completion_rate,
+        ]);
+
+        // الـ dompdf مش بيقبل RTL، فبنعكس ترتيب الأعمدة عشان أول عمود يظهر يمين.
+        $logicalHeaders = [
+            'م',
+            'المركز / المدينة',
+            'إجمالي البلاغات',
+            'تم استلام البلاغ',
+            'قيد المعالجة',
+            'تم التنفيذ',
+            'تم الانتهاء',
+            'نسبة التنفيذ',
+        ];
+
+        $pdf = Pdf::loadView('reports.monthly-stats-pdf', [
+            'rows'          => $rows,
+            'totals'        => $totals,
+            'monthName'     => $arabic->utf8Glyphs(self::MONTHS[$month] ?? ''),
+            'year'          => $year,
+            'pageTitle'     => $arabic->utf8Glyphs('إحصائيات المراكز والمدن - الشبكة الوطنية للطوارئ بكفر الشيخ'),
+            'summaryTitle'  => $arabic->utf8Glyphs('ملخص الأداء'),
+            'printedAtLabel' => $arabic->utf8Glyphs('تاريخ الطباعة:'),
+            'totalLabel'    => $arabic->utf8Glyphs('إجمالي البلاغات:'),
+            'totalRowLabel' => $arabic->utf8Glyphs('الإجمالي'),
+            'tableHeaders'  => array_map(fn ($header) => $arabic->utf8Glyphs($header), array_reverse($logicalHeaders)),
+        ])->setPaper('a4', 'landscape');
+
+        $fileName = 'إحصائيات-المراكز-' . (self::MONTHS[$month] ?? '') . '-' . $year . '.pdf';
+
+        return $pdf->download($fileName);
     }
 }

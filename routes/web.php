@@ -70,8 +70,28 @@ Route::middleware(['auth'])->group(function () {
         ->middleware('permission:reports.monthly-stats')
         ->name('reports.monthly-stats');
 
+    Route::get('/reports/monthly-stats/export/excel', [MonthlyReportStatsController::class, 'exportExcel'])
+        ->middleware('permission:reports.monthly-stats')
+        ->name('reports.monthly-stats.export.excel');
+
+    Route::get('/reports/monthly-stats/export/pdf', [MonthlyReportStatsController::class, 'exportPdf'])
+        ->middleware('permission:reports.monthly-stats')
+        ->name('reports.monthly-stats.export.pdf');
+
     Route::get('/reports/dashboard', [ReportDashboardController::class, 'index'])
         ->name('reports.dashboard');
+
+    Route::get('/reports/dashboard/export/cities/excel', [ReportDashboardController::class, 'exportCitiesExcel'])
+        ->name('reports.dashboard.export.cities.excel');
+
+    Route::get('/reports/dashboard/export/cities/pdf', [ReportDashboardController::class, 'exportCitiesPdf'])
+        ->name('reports.dashboard.export.cities.pdf');
+
+    Route::get('/reports/dashboard/export/authorities/excel', [ReportDashboardController::class, 'exportAuthoritiesExcel'])
+        ->name('reports.dashboard.export.authorities.excel');
+
+    Route::get('/reports/dashboard/export/authorities/pdf', [ReportDashboardController::class, 'exportAuthoritiesPdf'])
+        ->name('reports.dashboard.export.authorities.pdf');
 
     Route::get('/attachments/{attachment}', [AttachmentController::class, 'show'])
         ->name('attachments.show');

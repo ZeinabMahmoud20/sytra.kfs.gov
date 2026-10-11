@@ -9,10 +9,20 @@ class DailyAttendanceController extends Controller
 {
     public function index(): View
     {
+        $now = now();
+
         $dailyAttendances = DailyAttendance::with(['attendanceTemplate', 'dailyAttendanceEntities'])
             ->whereDate('attendance_date', today())
             ->orderBy('created_at')
-            ->get();
+            ->get()
+            ->filter(function ($daily) use ($now) {
+                $attendanceDateTime = $daily->attendance_date->copy()->setTimeFromTimeString(
+                    $daily->attendanceTemplate->attendance_time->format('H:i:s')
+                );
+
+                return $now->greaterThanOrEqualTo($attendanceDateTime->copy()->subMinutes(5));
+            })
+            ->values();
 
         return view('daily-attendances.index', compact('dailyAttendances'));
     }

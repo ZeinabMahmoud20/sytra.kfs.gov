@@ -3,11 +3,13 @@
 namespace App\Http\Controllers;
 
 use App\Models\DailyAttendanceEntity;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
 
 class DailyAttendanceEntityController extends Controller
 {
-    public function markDone(DailyAttendanceEntity $dailyAttendanceEntity): RedirectResponse
+    public function markDone(Request $request, DailyAttendanceEntity $dailyAttendanceEntity): RedirectResponse|JsonResponse
     {
         $dailyAttendanceEntity->update([
             'status' => 'done',
@@ -16,10 +18,14 @@ class DailyAttendanceEntityController extends Controller
 
         $this->syncParentStatus($dailyAttendanceEntity);
 
+        if ($request->wantsJson()) {
+            return $this->jsonResponse($dailyAttendanceEntity, 'تم تسجيل أداء التمام');
+        }
+
         return back()->with('success', 'تم تسجيل أداء التمام');
     }
 
-    public function markNotDone(DailyAttendanceEntity $dailyAttendanceEntity): RedirectResponse
+    public function markNotDone(Request $request, DailyAttendanceEntity $dailyAttendanceEntity): RedirectResponse|JsonResponse
     {
         $dailyAttendanceEntity->update([
             'status' => 'not_done',
@@ -28,7 +34,20 @@ class DailyAttendanceEntityController extends Controller
 
         $this->syncParentStatus($dailyAttendanceEntity);
 
+        if ($request->wantsJson()) {
+            return $this->jsonResponse($dailyAttendanceEntity, 'تم تسجيل عدم أداء التمام');
+        }
+
         return back()->with('success', 'تم تسجيل عدم أداء التمام');
+    }
+
+    private function jsonResponse(DailyAttendanceEntity $dailyAttendanceEntity, string $message): JsonResponse
+    {
+        return response()->json([
+            'message' => $message,
+            'status' => $dailyAttendanceEntity->status,
+            'response_at' => $dailyAttendanceEntity->response_at?->format('h:i A'),
+        ]);
     }
 
     /**

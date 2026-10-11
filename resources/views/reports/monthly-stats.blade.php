@@ -74,7 +74,19 @@
 
     {{-- جدول إحصائيات المراكز والمدن --}}
     <div>
-        <h3 class="text-2xl font-black text-primary mb-5"><i class="fas fa-building ml-2 text-accent"></i>إحصائيات المراكز والمدن (مرتبة تنازلياً حسب أعلى إنجاز)</h3>
+        <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-5">
+            <h3 class="text-2xl font-black text-primary"><i class="fas fa-building ml-2 text-accent"></i>إحصائيات المراكز والمدن (مرتبة تنازلياً حسب أعلى إنجاز)</h3>
+            <div class="flex items-center gap-2 flex-shrink-0">
+                <a href="{{ route('reports.monthly-stats.export.excel', ['month' => $month, 'year' => $year]) }}"
+                    class="px-5 py-3 rounded-2xl bg-green-600 text-white font-bold hover:bg-green-700 transition-all shadow-sm">
+                    <i class="fas fa-file-excel ml-2"></i>تصدير Excel
+                </a>
+                <a href="{{ route('reports.monthly-stats.export.pdf', ['month' => $month, 'year' => $year]) }}"
+                    class="px-5 py-3 rounded-2xl bg-red-600 text-white font-bold hover:bg-red-700 transition-all shadow-sm">
+                    <i class="fas fa-file-pdf ml-2"></i>تصدير PDF
+                </a>
+            </div>
+        </div>
         <div class="bg-white rounded-3xl shadow-sm border border-slate-100 overflow-hidden">
             <div class="overflow-x-auto">
                 <table class="w-full text-right">

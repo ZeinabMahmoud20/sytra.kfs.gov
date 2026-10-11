@@ -106,7 +106,19 @@
 
     {{-- جدول أداء المراكز --}}
     <div>
-        <h3 class="text-2xl font-black text-primary mb-5"><i class="fas fa-trophy ml-2 text-accent"></i>أداء المراكز والمدن (مرتبة تنازلياً حسب نسبة الإنجاز)</h3>
+        <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-5">
+            <h3 class="text-2xl font-black text-primary"><i class="fas fa-trophy ml-2 text-accent"></i>أداء المراكز والمدن (مرتبة تنازلياً حسب نسبة الإنجاز)</h3>
+            <div class="flex items-center gap-2 flex-shrink-0">
+                <a href="{{ route('reports.dashboard.export.cities.excel', request()->query()) }}"
+                    class="px-5 py-3 rounded-2xl bg-green-600 text-white font-bold hover:bg-green-700 transition-all shadow-sm">
+                    <i class="fas fa-file-excel ml-2"></i>تصدير Excel
+                </a>
+                <a href="{{ route('reports.dashboard.export.cities.pdf', request()->query()) }}"
+                    class="px-5 py-3 rounded-2xl bg-red-600 text-white font-bold hover:bg-red-700 transition-all shadow-sm">
+                    <i class="fas fa-file-pdf ml-2"></i>تصدير PDF
+                </a>
+            </div>
+        </div>
         <div class="bg-white rounded-3xl shadow-sm border border-slate-100 overflow-hidden">
             <div class="overflow-x-auto">
                 <table class="w-full text-right">
@@ -192,8 +204,22 @@
 
     {{-- إحصائية حسب جهة البلاغ --}}
     <div class="bg-white p-6 rounded-3xl shadow-sm border border-slate-100">
-        <h3 class="text-2xl font-black text-primary mb-1"><i class="fas fa-building-shield ml-2 text-accent"></i>إحصائية حسب جهة البلاغ</h3>
-        <p class="text-slate-500 font-bold mb-4 text-sm">أكثر الجهات تسجيلاً للبلاغات وأكثر القرى التي تُبلَّغ عنها (أعلى {{ count($chartAuth['labels']) }} جهات)</p>
+        <div class="flex flex-col md:flex-row md:items-start md:justify-between gap-4 mb-4">
+            <div>
+                <h3 class="text-2xl font-black text-primary mb-1"><i class="fas fa-building-shield ml-2 text-accent"></i>إحصائية حسب جهة البلاغ</h3>
+                <p class="text-slate-500 font-bold text-sm">أكثر الجهات تسجيلاً للبلاغات وأكثر القرى التي تُبلَّغ عنها (أعلى {{ count($chartAuth['labels']) }} جهات)</p>
+            </div>
+            <div class="flex items-center gap-2 flex-shrink-0">
+                <a href="{{ route('reports.dashboard.export.authorities.excel', request()->query()) }}"
+                    class="px-5 py-3 rounded-2xl bg-green-600 text-white font-bold hover:bg-green-700 transition-all shadow-sm">
+                    <i class="fas fa-file-excel ml-2"></i>تصدير Excel
+                </a>
+                <a href="{{ route('reports.dashboard.export.authorities.pdf', request()->query()) }}"
+                    class="px-5 py-3 rounded-2xl bg-red-600 text-white font-bold hover:bg-red-700 transition-all shadow-sm">
+                    <i class="fas fa-file-pdf ml-2"></i>تصدير PDF
+                </a>
+            </div>
+        </div>
         <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
             <div class="relative h-80"><canvas id="authChart"></canvas></div>
             <div class="overflow-x-auto">
