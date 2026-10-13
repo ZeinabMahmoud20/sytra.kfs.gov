@@ -420,65 +420,69 @@ class ReportController extends Controller
     /**
      * حفظ عدة مرفقات للبلاغ دفعة واحدة.
      */
-    public function storeAttachment(Request $request, RecieveReport $report)
-    {
-        $request->validate([
-            'AttachmentName' => ['required', 'in:صورة البلاغ,صورة متابعة البلاغ'],
-            // يقبل عدة ملفات معاً، كل ملف(any صيغة) بحد أقصى 100 ميجا
-            'attachment' => ['required', 'array', 'min:1'],
-            'attachment.*' => ['file', 'max:102400'],
-        ], [
-            'attachment.array' => 'اختر ملف واحد على الأقل.',
-            'attachment.*.file' => 'أحد الملفات المرفوعة غير صالح.',
-            'attachment.*.max' => 'حجم كل ملف يجب ألا يتجاوز 100 ميجا.',
-        ]);
-
-        $files = $request->file('attachment');
-        $storedPaths = [];
-
-        try {
-            // كل الملفات أو لا شيء: لو فشلت عملية، تتراجع كل الملفاتالمرفوعة
-            DB::transaction(function () use ($files, $request, $report, &$storedPaths) {
-                foreach ($files as $file) {
-                    $file = $request->file('attachment'); // غيّر الاسم حسب الكود عندك
-\Illuminate\Support\Facades\Log::info('Upload debug', [
-    'isValid'   => $file?->isValid(),
-    'error'     => $file?->getError(),
-    'errorMsg'  => $file?->getErrorMessage(),
-    'size'      => $file?->getSize(),
-    'realPath'  => $file?->getRealPath(),
-]);
-                    $path = $file->store('attachments', 'public');
-                    $storedPaths[] = $path;
-
-                    Attachment::create([
-                        'AttachmentName' => $request->AttachmentName,
-                        'ReportID' => $report->ID,
-                        'FilePath' => $path,
-                        'FileExtension' => $file->getClientOriginalExtension(),
-                    ]);
-                }
-            });
-        } catch (\Throwable $e) {
-    \Illuminate\Support\Facades\Log::error('Attachment upload failed: ' . $e->getMessage(), [
-        'exception' => get_class($e),
-        'file' => $e->getFile() . ':' . $e->getLine(),
-        'trace' => $e->getTraceAsString(),
+public function storeAttachment(Request $request, RecieveReport $report)
+{
+    $request->validate([
+        'AttachmentName' => ['required', 'in:صورة البلاغ,صورة متابعة البلاغ'],
+        // يقبل عدة ملفات معاً، كل ملف (أي صيغة) بحد أقصى 100 ميجا
+        'attachment' => ['required', 'array', 'min:1'],
+        'attachment.*' => ['file', 'max:102400'],
+    ], [
+        'attachment.array' => 'اختر ملف واحد على الأقل.',
+        'attachment.*.file' => 'أحد الملفات المرفوعة غير صالح.',
+        'attachment.*.max' => 'حجم كل ملف يجب ألا يتجاوز 100 ميجا.',
     ]);
 
-    Storage::disk('public')->delete($storedPaths);
+    $files = $request->file('attachment');
+    $storedPaths = [];
 
-    return back()
-        ->withInput()
-        ->withErrors(['attachment' => 'حدث خطأ أثناء رفع المرفقات، حاول مرة أخرى.']);
-}
+    try {
+        // كل الملفات أو لا شيء: لو فشلت عملية، تتراجع كل الملفات المرفوعة
+        DB::transaction(function () use ($files, $request, $report, &$storedPaths) {
+            foreach ($files as $file) {
+                // ===== debug مؤقت: امسحه بعد ما نعرف السبب =====
+                \Illuminate\Support\Facades\Log::info('Upload debug', [
+                    'name'     => $file->getClientOriginalName(),
+                    'isValid'  => $file->isValid(),
+                    'error'    => $file->getError(),
+                    'errorMsg' => $file->getErrorMessage(),
+                    'size'     => $file->getSize(),
+                    'realPath' => $file->getRealPath(),
+                    'tmp_dir'  => ini_get('upload_tmp_dir'),
+                ]);
+                // ===============================================
 
-        $count = count($files);
+                $path = $file->store('attachments', 'public');
+                $storedPaths[] = $path;
 
-        return redirect()
-            ->route('reports.show', $report)
-            ->with('success', $count > 1 ? "تم رفع {$count} مرفقات بنجاح" : 'تم رفع المرفق بنجاح');
+                Attachment::create([
+                    'AttachmentName' => $request->AttachmentName,
+                    'ReportID'       => $report->ID,
+                    'FilePath'       => $path,
+                    'FileExtension'  => $file->getClientOriginalExtension(),
+                ]);
+            }
+        });
+    } catch (\Throwable $e) {
+        \Illuminate\Support\Facades\Log::error('Attachment upload failed: ' . $e->getMessage(), [
+            'exception' => get_class($e),
+            'file'      => $e->getFile() . ':' . $e->getLine(),
+            'trace'     => $e->getTraceAsString(),
+        ]);
+
+        Storage::disk('public')->delete($storedPaths);
+
+        return back()
+            ->withInput()
+            ->withErrors(['attachment' => 'حدث خطأ أثناء رفع المرفقات، حاول مرة أخرى.']);
     }
+
+    $count = count($files);
+
+    return redirect()
+        ->route('reports.show', $report)
+        ->with('success', $count > 1 ? "تم رفع {$count} مرفقات بنجاح" : 'تم رفع المرفق بنجاح');
+}
 
     /**
      * حذف مرفق واحد من بلاغ (الملف من الديسك + السجل من قاعدة البيانات).
