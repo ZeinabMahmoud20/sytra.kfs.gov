@@ -452,12 +452,18 @@ class ReportController extends Controller
                 }
             });
         } catch (\Throwable $e) {
-            Storage::disk('public')->delete($storedPaths);
+    \Illuminate\Support\Facades\Log::error('Attachment upload failed: ' . $e->getMessage(), [
+        'exception' => get_class($e),
+        'file' => $e->getFile() . ':' . $e->getLine(),
+        'trace' => $e->getTraceAsString(),
+    ]);
 
-            return back()
-                ->withInput()
-                ->withErrors(['attachment' => 'حدث خطأ أثناء رفع المرفقات، حاول مرة أخرى.']);
-        }
+    Storage::disk('public')->delete($storedPaths);
+
+    return back()
+        ->withInput()
+        ->withErrors(['attachment' => 'حدث خطأ أثناء رفع المرفقات، حاول مرة أخرى.']);
+}
 
         $count = count($files);
 
