@@ -440,6 +440,14 @@ class ReportController extends Controller
             // كل الملفات أو لا شيء: لو فشلت عملية، تتراجع كل الملفاتالمرفوعة
             DB::transaction(function () use ($files, $request, $report, &$storedPaths) {
                 foreach ($files as $file) {
+                    $file = $request->file('attachment'); // غيّر الاسم حسب الكود عندك
+\Illuminate\Support\Facades\Log::info('Upload debug', [
+    'isValid'   => $file?->isValid(),
+    'error'     => $file?->getError(),
+    'errorMsg'  => $file?->getErrorMessage(),
+    'size'      => $file?->getSize(),
+    'realPath'  => $file?->getRealPath(),
+]);
                     $path = $file->store('attachments', 'public');
                     $storedPaths[] = $path;
 
