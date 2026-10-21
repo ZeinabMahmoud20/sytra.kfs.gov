@@ -115,16 +115,18 @@
                             </option>
                             @endforeach
                         </select>
+                        <p class="text-xs text-slate-500 mt-1">يمكن اختيار الجهة أولاً لفلترة أنواع البلاغات</p>
                     </div>
 
                     {{-- نوع البلاغ - بيتحمل حسب جهة البلاغ المختارة --}}
                     <div class="space-y-2">
                         <label class="block text-sm font-black text-slate-600">نوع البلاغ <span
                                 class="text-red-500">*</span></label>
-                        <select name="REPORTING_SORT" id="report-sort-select" required
+                        <select name="REPORTING_SORT" id="report-sort-select" required data-live-search="true"
                             class="w-full px-4 py-3 rounded-xl border border-slate-200 bg-slate-50 focus:bg-white focus:ring-2 focus:ring-accent/20 focus:border-accent outline-none transition-all">
-                            <option value="" selected>اختر جهة البلاغ أولاً</option>
+                            <option value="" disabled selected>ابحث واختار نوع البلاغ...</option>
                         </select>
+                        <p class="text-xs text-slate-500 mt-1">يمكنك البحث عن نوع البلاغ مباشرة، أو اختيار الجهة أولاً لفلترة القائمة، وعند اختيار نوع البلاغ سيتم تحديد جهة البلاغ تلقائياً</p>
                     </div>
 
                     {{-- المركز --}}
@@ -255,6 +257,22 @@
         </form>
     </div>
 </div>
+<link href="https://cdn.jsdelivr.net/npm/tom-select@2.3.1/dist/css/tom-select.css" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/tom-select@2.3.1/dist/js/tom-select.complete.min.js"></script>
+<script>
+let tomSelectReportType;
+document.addEventListener('DOMContentLoaded', function(){
+    if (window.TomSelect) {
+        tomSelectReportType = new TomSelect('#report-sort-select', {
+            create: false,
+            sortField: {field: 'text', direction: 'asc'},
+            placeholder: 'ابحث واختار نوع البلاغ...',
+            allowEmptyOption: true,
+            plugins: ['dropdown_input']
+        });
+    }
+});
+</script>
 @endsection
 
 {{-- قالب صف مصاب/متوفى مخفي، بنستخدمه كـ Template لأي صف جديد --}}
@@ -348,10 +366,118 @@
     updatePhoneValidation();
 
     // ------------------------------------------------------------------
-    // 1. جهة البلاغ -> تحميل أنواع البلاغات المرتبطة بيها
+    // 1. اختيار الجهة / البحث عن نوع البلاغ + ربط ثنائي الاتجاه
     // ------------------------------------------------------------------
     const authSelect = document.getElementById('auth-select');
     const reportSortSelect = document.getElementById('report-sort-select');
+    let allReportTypes = [];
+
+    fetch('{{ route('reports.report-types-search') }}')
+        .then(res => res.json())
+        .then(data => {
+            allReportTypes = data.map(t => ({
+                REPORT_ID: t.REPORT_ID,
+                REPORT_SORT: t.REPORT_SORT,
+                AUTHORITY: (t.AUTHORITY || '').trim()
+            }));
+
+            const oldAuth = authSelect.value ? authSelect.value.trim() : '';
+            const oldSort = @json(old('REPORTING_SORT'));
+            if (oldAuth) {
+                populateReportSortCreate(allReportTypes.filter(t => t.AUTHORITY === oldAuth));
+            } else {
+                populateReportSortCreate(allReportTypes);
+            }
+            if (oldSort) {
+                const found = Array.from(reportSortSelect.options).find(o => o.value == oldSort);
+                if (found) {
+                    found.selected = true;
+                    if (found.dataset.authority) {
+                        syncAuthByTrim(found.dataset.authority);
+                    }
+                }
+            } else if (oldAuth) {
+                syncAuthByTrim(oldAuth);
+            }
+        })
+        .catch(() => {});
+
+    function syncAuthByTrim(targetAuth) {
+        const authSelectEl = document.getElementById('auth-select');
+        if (!authSelectEl || !targetAuth) return;
+        const target = targetAuth.toString().trim();
+        if (target === '') return;
+
+        for (let i = 0; i < authSelectEl.options.length; i++) {
+            const opt = authSelectEl.options[i];
+            if (!opt.value) continue;
+            if (opt.value.toString().trim() === target) {
+                if (authSelectEl.value !== opt.value) {
+                    authSelectEl.value = opt.value;
+                }
+                return;
+            }
+        }
+        authSelectEl.value = target;
+    }
+
+    function populateReportSortCreate(types) {
+        reportSortSelect.innerHTML = '<option value="" disabled selected>ابحث واختار نوع البلاغ...</option>';
+        types.forEach(type => {
+            const opt = document.createElement('option');
+            opt.value = type.REPORT_ID;
+            opt.textContent = type.REPORT_SORT + ' - ' + type.AUTHORITY;
+            opt.dataset.authority = type.AUTHORITY;
+            opt.dataset.reportSort = type.REPORT_SORT;
+            reportSortSelect.appendChild(opt);
+        });
+        if (typeof tomSelectReportType !== 'undefined' && tomSelectReportType) {
+            try {
+                tomSelectReportType.sync();
+                tomSelectReportType.refreshOptions(false);
+            } catch (e) {}
+        }
+    }
+
+
+
+
+
+    reportSortSelect.addEventListener('change', function () {
+        const opt = this.options[this.selectedIndex];
+        if (opt && opt.dataset.authority) {
+            const authTrim = (opt.dataset.authority || '').trim();
+            const currentAuthTrim = authSelect.value ? authSelect.value.trim() : '';
+            if (currentAuthTrim !== authTrim) {
+                syncAuthByTrim(authTrim);
+                const filteredByAuth = allReportTypes.filter(t => t.AUTHORITY === authTrim);
+                const currentVal = opt.value;
+                populateReportSortCreate(filteredByAuth);
+                if (typeof tomSelectReportType !== 'undefined' && tomSelectReportType) {
+                    try {
+                        tomSelectReportType.clear();
+                        tomSelectReportType.sync();
+                        tomSelectReportType.addOption({value: currentVal, text: opt.textContent});
+                        tomSelectReportType.setValue(currentVal, true);
+                        tomSelectReportType.refreshOptions(false);
+                    } catch (e) {
+                        const found = Array.from(reportSortSelect.options).find(o => o.value == currentVal);
+                        if (found) found.selected = true;
+                    }
+                } else {
+                    const found = Array.from(reportSortSelect.options).find(o => o.value == currentVal);
+                    if (found) found.selected = true;
+                }
+            } else {
+                syncAuthByTrim(authTrim);
+                if (typeof tomSelectReportType !== 'undefined' && tomSelectReportType && opt.value) {
+                    try {
+                        tomSelectReportType.setValue(opt.value, true);
+                    } catch (e) {}
+                }
+            }
+        }
+    });
 
     function loadReportTypes(authValue, preselect = null) {
         reportSortSelect.innerHTML = '<option value="">جاري التحميل...</option>';
@@ -370,6 +496,22 @@
     }
 
     authSelect.addEventListener('change', function() {
+        const authValue = this.value ? this.value.trim() : '';
+        if (authValue && typeof allReportTypes !== 'undefined' && allReportTypes.length) {
+            const filtered = allReportTypes.filter(t => t.AUTHORITY === authValue);
+            if (filtered.length) {
+                populateReportSortCreate(filtered);
+                if (typeof tomSelectReportType !== 'undefined' && tomSelectReportType) {
+                    try {
+                        tomSelectReportType.clear();
+                        tomSelectReportType.refreshOptions(false);
+                    } catch (e) {}
+                } else {
+                    reportSortSelect.selectedIndex = 0;
+                }
+                return;
+            }
+        }
         if (this.value) loadReportTypes(this.value);
     });
 

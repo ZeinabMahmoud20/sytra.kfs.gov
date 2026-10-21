@@ -29,6 +29,32 @@ class Evaluation extends Model
         'no_response' => 'لم يتم الرد',
     ];
 
+    /**
+     * ألوان كل نوع رد - للعرض في شاشات التقييم
+     */
+    public const STYLES = [
+        'head'        => [
+            'badge'  => 'bg-green-50 text-green-700 border-green-200',
+            'button' => 'bg-green-50 text-green-700 border-green-300 hover:bg-green-100 hover:border-green-500',
+            'icon'   => 'fa-user-check',
+        ],
+        'deputy'      => [
+            'badge'  => 'bg-blue-50 text-blue-700 border-blue-200',
+            'button' => 'bg-blue-50 text-blue-700 border-blue-300 hover:bg-blue-100 hover:border-blue-500',
+            'icon'   => 'fa-user-alt',
+        ],
+        'operations'  => [
+            'badge'  => 'bg-amber-50 text-amber-700 border-amber-200',
+            'button' => 'bg-amber-50 text-amber-700 border-amber-300 hover:bg-amber-100 hover:border-amber-500',
+            'icon'   => 'fa-satellite-dish',
+        ],
+        'no_response' => [
+            'badge'  => 'bg-red-50 text-red-700 border-red-200',
+            'button' => 'bg-red-50 text-red-700 border-red-300 hover:bg-red-100 hover:border-red-500',
+            'icon'   => 'fa-times-circle',
+        ],
+    ];
+
     protected $fillable = [
         'evaluation_entity_id',
         'evaluated_by',

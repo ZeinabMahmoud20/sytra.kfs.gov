@@ -106,15 +106,22 @@
                                 </td>
                                 <td class="px-4 py-4">
                                     @if (isset($responses[$entity->id]))
-                                        <span class="inline-flex items-center gap-2 px-4 py-2 bg-green-50 text-green-700 rounded-full text-sm font-bold border border-green-200">
-                                            <i class="fas fa-check-circle"></i>
-                                            تم التقييم: {{ $responseTypes[$responses[$entity->id]] }}
+                                        @php
+                                            $type = $responses[$entity->id];
+                                            $style = $responseStyles[$type] ?? ['badge' => 'bg-green-50 text-green-700 border-green-200', 'icon' => 'fa-check-circle'];
+                                        @endphp
+                                        <span class="inline-flex items-center gap-2 px-4 py-2 {{ $style['badge'] }} rounded-full text-sm font-bold border">
+                                            <i class="fas {{ $style['icon'] }}"></i>
+                                            {{ $responseTypes[$type] ?? $type }}
                                         </span>
                                     @else
                                         <div class="flex gap-2 flex-wrap">
                                             @foreach ($responseTypes as $key => $label)
+                                                @php
+                                                    $btnStyle = $responseStyles[$key]['button'] ?? 'bg-white text-slate-600 border-slate-200 hover:border-accent hover:text-accent hover:bg-accent/5';
+                                                @endphp
                                                 <button wire:click="save({{ $entity->id }}, '{{ $key }}')"
-                                                    class="px-4 py-2 rounded-xl text-sm font-bold border border-slate-200 bg-white text-slate-600 hover:border-accent hover:text-accent hover:bg-accent/5 transition-all">
+                                                    class="px-4 py-2 rounded-xl text-sm font-bold border {{ $btnStyle }} transition-all">
                                                     {{ $label }}
                                                 </button>
                                             @endforeach

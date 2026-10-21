@@ -62,10 +62,12 @@ Route::middleware(['auth'])->group(function () {
 
     Route::get('/reports/report-types-by-auth', [ReportController::class, 'reportTypesByAuth'])
         ->name('reports.report-types-by-auth');
+    Route::get('/reports/report-types-search', [ReportController::class, 'reportTypesSearch'])
+        ->name('reports.report-types-search');
     Route::get('/reports/villages-by-city/{city}', [ReportController::class, 'villagesByCity'])
         ->name('reports.villages-by-city');
 
-    // لازم قبل route('reports.show') عشان "monthly-stats" و "dashboard" يتم تفسيرهم كمعرّف
+    // U,OO�U. U,O"U, route('reports.show') O1O'OU+ "monthly-stats" U^ "dashboard" USO�U. O�U?O3USO�U�U. U�U.O1O�U`U?
     Route::get('/reports/monthly-stats', [MonthlyReportStatsController::class, 'index'])
         ->middleware('permission:reports.monthly-stats')
         ->name('reports.monthly-stats');

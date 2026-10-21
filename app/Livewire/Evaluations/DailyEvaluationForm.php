@@ -113,6 +113,7 @@ class DailyEvaluationForm extends Component
         return view('livewire.evaluations.daily-evaluation-form', [
             'entities'   => EvaluationEntity::active()->orderBy('name')->get(),
             'responseTypes' => Evaluation::LABELS,
+            'responseStyles' => Evaluation::STYLES,
         ]);
     }
 }

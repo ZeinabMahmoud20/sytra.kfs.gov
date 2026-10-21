@@ -17,6 +17,7 @@ use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\Request;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\Rule;
@@ -86,6 +87,27 @@ class ReportController extends Controller
         return $authority === null ? null : trim($authority);
     }
 
+    public function reportTypesSearch()
+    {
+        $types = ReportingType::select('REPORT_ID', 'REPORT_SORT', 'AUTHORITY')
+            ->where('IS_INTERNET', false)
+            ->whereNotNull('AUTHORITY')
+            ->get()
+            ->map(function ($t) {
+                return [
+                    'REPORT_ID' => $t->REPORT_ID,
+                    'REPORT_SORT' => $t->REPORT_SORT,
+                    'AUTHORITY' => trim((string) $t->AUTHORITY),
+                ];
+            })
+            ->sortBy(function ($t) {
+                return mb_strtolower($t['AUTHORITY']) . '|' . mb_strtolower($t['REPORT_SORT']);
+            })
+            ->values();
+
+        return response()->json($types);
+    }
+
     public function index(Request $request)
     {
         $reports = $this->filteredQuery($request)->paginate(20)->withQueryString();
@@ -97,20 +119,6 @@ class ReportController extends Controller
             'reportingTypes' => ReportingType::orderBy('REPORT_SORT')->get(),
             'statuses' => $this->statuses,
         ]);
-
-        if ($request->filled('search')) {
-
-            $search = trim($request->search);
-
-            $query->where(function ($q) use ($search) {
-
-                $q->where('REPORT_REGISTER_NUMBER', 'like', "%{$search}%")
-                    ->orWhere('REPORTER_NAME', 'like', "%{$search}%")
-                    ->orWhere('REPORTER_SSN', 'like', "%{$search}%")
-                    ->orWhere('REPORT_FOLLOWUP_NUMBER', 'like', "%{$search}%")
-                    ->orWhere('REQUEST_STATUS', 'like', "%{$search}%");
-            });
-        }
     }
 
     /**
@@ -125,31 +133,45 @@ class ReportController extends Controller
 
         return RecieveReport::query()
             ->with(['reportingType', 'city', 'village', 'user'])
-            ->when($request->filled('reporter_name'), fn($q) => $q->where('REPORTER_NAME', 'like', "%{$request->reporter_name}%"))
-            ->when($request->filled('national_id'), fn($q) => $q->where('REPORTER_SSN', 'like', "%{$request->national_id}%"))
-            ->when($request->filled('phone'), fn($q) => $q->where('REPORT_FOLLOWUP_NUMBER', 'like', "%{$request->phone}%"))
-            ->when($request->filled('city'), fn($q) => $q->where('CITY', $request->city))
-            ->when($villageFilter, fn($q) => $q->where('VILLAGE', $villageFilter))
+            // البحث العام (كان موجود في index() بعد الـ return فمكانش بيشتغل)
+            ->when($request->filled('search'), function ($q) use ($request) {
+                $search = trim($request->search);
+
+                $q->where(function ($sub) use ($search) {
+                    $sub->where('REPORT_REGISTER_NUMBER', 'like', "%{$search}%")
+                        ->orWhere('REPORTER_NAME', 'like', "%{$search}%")
+                        ->orWhere('REPORTER_SSN', 'like', "%{$search}%")
+                        ->orWhere('REPORT_FOLLOWUP_NUMBER', 'like', "%{$search}%")
+                        ->orWhere('REQUEST_STATUS', 'like', "%{$search}%");
+                });
+            })
+            ->when($request->filled('reporter_name'), fn ($q) => $q->where('REPORTER_NAME', 'like', "%{$request->reporter_name}%"))
+            ->when($request->filled('national_id'), fn ($q) => $q->where('REPORTER_SSN', 'like', "%{$request->national_id}%"))
+            ->when($request->filled('phone'), fn ($q) => $q->where('REPORT_FOLLOWUP_NUMBER', 'like', "%{$request->phone}%"))
+            ->when($request->filled('city'), fn ($q) => $q->where('CITY', $request->city))
+            ->when($villageFilter, fn ($q) => $q->where('VILLAGE', $villageFilter))
             // جهة البلاغ: بتتطابق مع REPORTING_Auth المباشر أو AUTHORITY بتاعة نوع البلاغ (زي الديسكتوب بالظبط)
             // المقارنة بـ TRIM عشان الصفوف القديمة اللي فيها مسافة ما تختفيش من الفلتر
             ->when($request->filled('reporting_auth'), function ($q) use ($request) {
                 $auth = trim($request->reporting_auth);
+
                 $q->where(function ($sub) use ($auth) {
                     $sub->whereRaw('TRIM(REPORTING_Auth) = ?', [$auth])
-                        ->orWhereHas('reportingType', fn($rt) => $rt->whereRaw('TRIM(AUTHORITY) = ?', [$auth]));
+                        ->orWhereHas('reportingType', fn ($rt) => $rt->whereRaw('TRIM(AUTHORITY) = ?', [$auth]));
                 });
             })
-            ->when($request->filled('reporting_sort'), fn($q) => $q->where('REPORTING_SORT', $request->reporting_sort))
+            ->when($request->filled('reporting_sort'), fn ($q) => $q->where('REPORTING_SORT', $request->reporting_sort))
             ->when($request->filled('status'), function ($q) use ($request) {
                 if (is_array($request->status)) {
                     return $q->whereIn('REQUEST_STATUS', $request->status);
                 }
+
                 return $q->where('REQUEST_STATUS', $request->status);
             })
-            ->when($request->filled('date_from'), fn($q) => $q->whereDate('REPORT_START_DATE', '>=', $request->date_from))
-            ->when($request->filled('date_to'), fn($q) => $q->whereDate('REPORT_START_DATE', '<=', $request->date_to))
-            ->when($request->filled('time_from') && $request->boolean('filter_by_time'), fn($q) => $q->whereTime('REPORT_START_TIME', '>=', $request->time_from))
-            ->when($request->filled('time_to') && $request->boolean('filter_by_time'), fn($q) => $q->whereTime('REPORT_START_TIME', '<=', $request->time_to))
+            ->when($request->filled('date_from'), fn ($q) => $q->whereDate('REPORT_START_DATE', '>=', $request->date_from))
+            ->when($request->filled('date_to'), fn ($q) => $q->whereDate('REPORT_START_DATE', '<=', $request->date_to))
+            ->when($request->filled('time_from') && $request->boolean('filter_by_time'), fn ($q) => $q->whereTime('REPORT_START_TIME', '>=', $request->time_from))
+            ->when($request->filled('time_to') && $request->boolean('filter_by_time'), fn ($q) => $q->whereTime('REPORT_START_TIME', '<=', $request->time_to))
             ->latest('ID');
     }
 
@@ -172,7 +194,7 @@ class ReportController extends Controller
         $canLockReport = auth()->user()->hasAnyRole(['مشرف عام', 'ادمن']);
 
         // المشرف العام بس اللي يقدر يعدّل بلاغ "تم الانتهاء"، أي دور تاني يبقى عرض فقط
-        $isLocked = $report->REQUEST_STATUS === 'تم الانتهاء' && !$canLockReport;
+        $isLocked = $report->REQUEST_STATUS === 'تم الانتهاء' && ! $canLockReport;
 
         $report->load(['lockedByUser', 'reportingType']);
 
@@ -218,7 +240,7 @@ class ReportController extends Controller
     {
         $canLockReport = auth()->user()->hasAnyRole(['مشرف عام', 'ادمن']);
 
-        if ($report->REQUEST_STATUS === 'تم الانتهاء' && !$canLockReport) {
+        if ($report->REQUEST_STATUS === 'تم الانتهاء' && ! $canLockReport) {
             abort(403, 'لا يمكن تعديل بلاغ تم الانتهاء منه');
         }
 
@@ -230,40 +252,40 @@ class ReportController extends Controller
         $validated = Validator::make(
             $request->all(),
             [
-            'REPORTER_NAME' => ['required', 'string', 'max:50'],
-            'REPORT_FOLLOWUP_NUMBER' => ['required', 'regex:/^(01[0125][0-9]{8}|0[0-9]{9})$/'],
-            'REPORTER_SSN' => ['required', 'digits:14', 'regex:/^[23]\d{13}$/'],
-            'REPORT_START_DATE' => ['required', 'date'],
-            'REPORT_START_TIME' => ['required'],
-            'REPORTING_Auth' => ['required', 'string', 'max:500', Rule::in($this->authorityOptions()->all())],
-            'REPORTING_SORT' => [
-                'required',
-                Rule::exists('REPORTING_TYPES', 'REPORT_ID')
-                    ->where(fn ($query) => $query->whereRaw('TRIM(AUTHORITY) = ?', [$request->input('REPORTING_Auth')])),
-            ],
-            'CITY' => ['required', 'exists:CITY,CITY_ID'],
-            'location_type' => ['required', 'in:مدينة,قرية'],
-            'VILLAGE' => ['required', 'exists:VILLAGE,VILLAGE_ID'],
-            'X_AXIS' => ['nullable', 'numeric'],
-            'Y_AXIS' => ['nullable', 'numeric'],
-            'PLACE_Accident' => ['required', 'string', 'max:500'],
-            'DAMAGE' => ['required', 'string'],
-            'REQUEST_STATUS' => ['required', Rule::in($allowedStatuses)],
-            'notified_authorities' => ['nullable', 'array'],
-            'notified_authorities.*' => ['string'],
-            'NOTIFIED_AUTHORITIES' => ['nullable', 'string', 'max:5000'],
-            'injured' => ['nullable', 'array'],
-            'injured.*.name' => ['required_with:injured', 'string', 'max:50'],
-            'injured.*.age' => ['required_with:injured', 'integer', 'min:1', 'max:150'],
-            'injured.*.diagnosis' => ['nullable', 'string', 'max:500'],
-            'injured.*.followup' => ['nullable', 'string'],
-            'INFECTED_NUM' => ['nullable', 'integer', 'min:0'],
-            'Deceased_Num' => ['nullable', 'integer', 'min:0'],
-            'deceased' => ['nullable', 'array'],
-            'deceased.*.name' => ['required_with:deceased', 'string', 'max:50'],
-            'deceased.*.age' => ['required_with:deceased', 'integer', 'min:1', 'max:150'],
-            'deceased.*.address' => ['nullable', 'string'],
-            'deceased.*.followup' => ['nullable', 'string'],
+                'REPORTER_NAME' => ['required', 'string', 'max:50'],
+                'REPORT_FOLLOWUP_NUMBER' => ['required', 'regex:/^(01[0125][0-9]{8}|0[0-9]{9})$/'],
+                'REPORTER_SSN' => ['required', 'digits:14', 'regex:/^[23]\d{13}$/'],
+                'REPORT_START_DATE' => ['required', 'date'],
+                'REPORT_START_TIME' => ['required'],
+                'REPORTING_Auth' => ['required', 'string', 'max:500', Rule::in($this->authorityOptions()->all())],
+                'REPORTING_SORT' => [
+                    'required',
+                    Rule::exists('REPORTING_TYPES', 'REPORT_ID')
+                        ->where(fn ($query) => $query->whereRaw('TRIM(AUTHORITY) = ?', [$request->input('REPORTING_Auth')])),
+                ],
+                'CITY' => ['required', 'exists:CITY,CITY_ID'],
+                'location_type' => ['required', 'in:مدينة,قرية'],
+                'VILLAGE' => ['required', 'exists:VILLAGE,VILLAGE_ID'],
+                'X_AXIS' => ['nullable', 'numeric'],
+                'Y_AXIS' => ['nullable', 'numeric'],
+                'PLACE_Accident' => ['required', 'string', 'max:500'],
+                'DAMAGE' => ['required', 'string'],
+                'REQUEST_STATUS' => ['required', Rule::in($allowedStatuses)],
+                'notified_authorities' => ['nullable', 'array'],
+                'notified_authorities.*' => ['string'],
+                'NOTIFIED_AUTHORITIES' => ['nullable', 'string', 'max:5000'],
+                'injured' => ['nullable', 'array'],
+                'injured.*.name' => ['required_with:injured', 'string', 'max:50'],
+                'injured.*.age' => ['required_with:injured', 'integer', 'min:1', 'max:150'],
+                'injured.*.diagnosis' => ['nullable', 'string', 'max:500'],
+                'injured.*.followup' => ['nullable', 'string'],
+                'INFECTED_NUM' => ['nullable', 'integer', 'min:0'],
+                'Deceased_Num' => ['nullable', 'integer', 'min:0'],
+                'deceased' => ['nullable', 'array'],
+                'deceased.*.name' => ['required_with:deceased', 'string', 'max:50'],
+                'deceased.*.age' => ['required_with:deceased', 'integer', 'min:1', 'max:150'],
+                'deceased.*.address' => ['nullable', 'string'],
+                'deceased.*.followup' => ['nullable', 'string'],
             ],
             $this->reportValidationMessages(),
             $this->reportValidationAttributes()
@@ -279,10 +301,7 @@ class ReportController extends Controller
         $wasLocked = $report->REQUEST_STATUS === 'تم الانتهاء';
         $willBeLocked = $validated['REQUEST_STATUS'] === 'تم الانتهاء';
 
-        $oldData = $report->toArray();
-
-        DB::transaction(function () use ($report, $validated, $startDate, $startTime, $wasLocked, $willBeLocked) {
-            $request = request();
+        DB::transaction(function () use ($report, $validated, $startDate, $startTime, $wasLocked, $willBeLocked, $request) {
             $reportData = [
                 'REPORTER_SSN' => $validated['REPORTER_SSN'],
                 'REPORTER_NAME' => $validated['REPORTER_NAME'],
@@ -296,30 +315,24 @@ class ReportController extends Controller
                 'Y_AXIS' => $validated['Y_AXIS'] ?? 0,
                 'DAMAGE' => $validated['DAMAGE'],
                 'PLACE_Accident' => $validated['PLACE_Accident'],
-                'Deceased_Num' => $request->filled('Deceased_Num') ? (int) $request->Deceased_Num : ((isset($validated['deceased']) && is_array($validated['deceased'])) ? count($validated['deceased']) : 0),
-                'INFECTED_NUM' => $request->filled('INFECTED_NUM') ? (int) $request->INFECTED_NUM : ((isset($validated['injured']) && is_array($validated['injured'])) ? count($validated['injured']) : 0),
+                // لو العدد مكتوب في الفورم نستخدمه، وإلا بنعدّ الأسماء المسجلة
+                'Deceased_Num' => $request->filled('Deceased_Num')
+                    ? (int) $request->Deceased_Num
+                    : count($validated['deceased'] ?? []),
+                'INFECTED_NUM' => $request->filled('INFECTED_NUM')
+                    ? (int) $request->INFECTED_NUM
+                    : count($validated['injured'] ?? []),
                 'REQUEST_STATUS' => $validated['REQUEST_STATUS'],
                 'REPORT_FOLLOWUP_NUMBER' => $validated['REPORT_FOLLOWUP_NUMBER'],
                 'NOTIFIED_AUTHORITIES' => $validated['NOTIFIED_AUTHORITIES'] ?? null,
             ];
 
-            if ($request->filled('Deceased_Num')) {
-                $reportData['Deceased_Num'] = (int) $request->Deceased_Num;
-            } else {
-                $reportData['Deceased_Num'] = count($validated['deceased'] ?? []);
-            }
-            if ($request->filled('INFECTED_NUM')) {
-                $reportData['INFECTED_NUM'] = (int) $request->INFECTED_NUM;
-            } else {
-                $reportData['INFECTED_NUM'] = count($validated['injured'] ?? []);
-            }
-
-            if ($willBeLocked && !$wasLocked) {
+            if ($willBeLocked && ! $wasLocked) {
                 // أول مرة يتقفل فيها البلاغ: نسجل تاريخ ووقت القفل، ومين اللي قفله
                 $reportData['REPORT_END_DATE'] = now()->format('Y-m-d');
                 $reportData['REPORT_END_TIME'] = now()->format('H:i:s');
                 $reportData['LOCKED_BY'] = auth()->id();
-            } elseif (!$willBeLocked && $wasLocked) {
+            } elseif (! $willBeLocked && $wasLocked) {
                 // لو المشرف فتح البلاغ تاني بعد ما كان مقفول، نمسح بيانات القفل
                 $reportData['REPORT_END_DATE'] = null;
                 $reportData['REPORT_END_TIME'] = null;
@@ -373,7 +386,9 @@ class ReportController extends Controller
             'USER_ID' => auth()->id(),
         ]);
 
-        return redirect()->route('reports.index')->with('success', "تم تحديث البلاغ رقم {$report->REPORT_REGISTER_NUMBER} بنجاح");
+        return redirect()
+            ->route('reports.index')
+            ->with('success', "تم تحديث البلاغ رقم {$report->REPORT_REGISTER_NUMBER} بنجاح");
     }
 
     /**
@@ -420,69 +435,69 @@ class ReportController extends Controller
     /**
      * حفظ عدة مرفقات للبلاغ دفعة واحدة.
      */
-public function storeAttachment(Request $request, RecieveReport $report)
-{
-    $request->validate([
-        'AttachmentName' => ['required', 'in:صورة البلاغ,صورة متابعة البلاغ'],
-        // يقبل عدة ملفات معاً، كل ملف (أي صيغة) بحد أقصى 100 ميجا
-        'attachment' => ['required', 'array', 'min:1'],
-        'attachment.*' => ['file', 'max:102400'],
-    ], [
-        'attachment.array' => 'اختر ملف واحد على الأقل.',
-        'attachment.*.file' => 'أحد الملفات المرفوعة غير صالح.',
-        'attachment.*.max' => 'حجم كل ملف يجب ألا يتجاوز 100 ميجا.',
-    ]);
-
-    $files = $request->file('attachment');
-    $storedPaths = [];
-
-    try {
-        // كل الملفات أو لا شيء: لو فشلت عملية، تتراجع كل الملفات المرفوعة
-        DB::transaction(function () use ($files, $request, $report, &$storedPaths) {
-            foreach ($files as $file) {
-                // ===== debug مؤقت: امسحه بعد ما نعرف السبب =====
-                \Illuminate\Support\Facades\Log::info('Upload debug', [
-                    'name'     => $file->getClientOriginalName(),
-                    'isValid'  => $file->isValid(),
-                    'error'    => $file->getError(),
-                    'errorMsg' => $file->getErrorMessage(),
-                    'size'     => $file->getSize(),
-                    'realPath' => $file->getRealPath(),
-                    'tmp_dir'  => ini_get('upload_tmp_dir'),
-                ]);
-                // ===============================================
-
-                $path = $file->store('attachments', 'public');
-                $storedPaths[] = $path;
-
-                Attachment::create([
-                    'AttachmentName' => $request->AttachmentName,
-                    'ReportID'       => $report->ID,
-                    'FilePath'       => $path,
-                    'FileExtension'  => $file->getClientOriginalExtension(),
-                ]);
-            }
-        });
-    } catch (\Throwable $e) {
-        \Illuminate\Support\Facades\Log::error('Attachment upload failed: ' . $e->getMessage(), [
-            'exception' => get_class($e),
-            'file'      => $e->getFile() . ':' . $e->getLine(),
-            'trace'     => $e->getTraceAsString(),
+    public function storeAttachment(Request $request, RecieveReport $report)
+    {
+        $request->validate([
+            'AttachmentName' => ['required', 'in:صورة البلاغ,صورة متابعة البلاغ'],
+            // يقبل عدة ملفات معاً، كل ملف (أي صيغة) بحد أقصى 100 ميجا
+            'attachment' => ['required', 'array', 'min:1'],
+            'attachment.*' => ['file', 'max:102400'],
+        ], [
+            'attachment.array' => 'اختر ملف واحد على الأقل.',
+            'attachment.*.file' => 'أحد الملفات المرفوعة غير صالح.',
+            'attachment.*.max' => 'حجم كل ملف يجب ألا يتجاوز 100 ميجا.',
         ]);
 
-        Storage::disk('public')->delete($storedPaths);
+        $files = $request->file('attachment');
+        $storedPaths = [];
 
-        return back()
-            ->withInput()
-            ->withErrors(['attachment' => 'حدث خطأ أثناء رفع المرفقات، حاول مرة أخرى.']);
+        try {
+            // كل الملفات أو لا شيء: لو فشلت عملية، تتراجع كل الملفات المرفوعة
+            DB::transaction(function () use ($files, $request, $report, &$storedPaths) {
+                foreach ($files as $file) {
+                    // ===== debug مؤقت: امسحه بعد ما نعرف السبب =====
+                    Log::info('Upload debug', [
+                        'name' => $file->getClientOriginalName(),
+                        'isValid' => $file->isValid(),
+                        'error' => $file->getError(),
+                        'errorMsg' => $file->getErrorMessage(),
+                        'size' => $file->getSize(),
+                        'realPath' => $file->getRealPath(),
+                        'tmp_dir' => ini_get('upload_tmp_dir'),
+                    ]);
+                    // ===============================================
+
+                    $path = $file->store('attachments', 'public');
+                    $storedPaths[] = $path;
+
+                    Attachment::create([
+                        'AttachmentName' => $request->AttachmentName,
+                        'ReportID' => $report->ID,
+                        'FilePath' => $path,
+                        'FileExtension' => $file->getClientOriginalExtension(),
+                    ]);
+                }
+            });
+        } catch (\Throwable $e) {
+            Log::error('Attachment upload failed: ' . $e->getMessage(), [
+                'exception' => get_class($e),
+                'file' => $e->getFile() . ':' . $e->getLine(),
+                'trace' => $e->getTraceAsString(),
+            ]);
+
+            Storage::disk('public')->delete($storedPaths);
+
+            return back()
+                ->withInput()
+                ->withErrors(['attachment' => 'حدث خطأ أثناء رفع المرفقات، حاول مرة أخرى.']);
+        }
+
+        $count = count($files);
+
+        return redirect()
+            ->route('reports.show', $report)
+            ->with('success', $count > 1 ? "تم رفع {$count} مرفقات بنجاح" : 'تم رفع المرفق بنجاح');
     }
-
-    $count = count($files);
-
-    return redirect()
-        ->route('reports.show', $report)
-        ->with('success', $count > 1 ? "تم رفع {$count} مرفقات بنجاح" : 'تم رفع المرفق بنجاح');
-}
 
     /**
      * حذف مرفق واحد من بلاغ (الملف من الديسك + السجل من قاعدة البيانات).
@@ -535,6 +550,7 @@ public function storeAttachment(Request $request, RecieveReport $report)
 
         $reshapedReports = $reports->map(function ($report) use ($arabic) {
             $clone = clone $report;
+
             $clone->REPORTER_NAME = $arabic->utf8Glyphs($report->REPORTER_NAME ?? '');
             $clone->REPORTING_Auth = $arabic->utf8Glyphs($report->REPORTING_Auth ?? '');
             $clone->PLACE_Accident = $arabic->utf8Glyphs($report->PLACE_Accident ?? '');
@@ -591,7 +607,10 @@ public function storeAttachment(Request $request, RecieveReport $report)
             'pageTitle' => $arabic->utf8Glyphs('تقرير البلاغات - الشبكة الوطنية للطوارئ بكفر الشيخ'),
             'printedAtLabel' => $arabic->utf8Glyphs('تاريخ الطباعة:'),
             'countLabel' => $arabic->utf8Glyphs('عدد النتائج:'),
-            'tableHeaders' => array_map(fn ($header) => $arabic->utf8Glyphs($header), array_reverse($logicalHeaders)),
+            'tableHeaders' => array_map(
+                fn ($header) => $arabic->utf8Glyphs($header),
+                array_reverse($logicalHeaders)
+            ),
         ])->setPaper('a4', 'landscape');
 
         return $pdf->download('البلاغات.pdf');
@@ -640,7 +659,8 @@ public function storeAttachment(Request $request, RecieveReport $report)
             ? $query->where('VILLAGE_SORT', 'مدينة')
             : $query->where('VILLAGE_SORT', '!=', 'مدينة');
 
-        $villages = $query->with('parent')->orderBy('VILLAGE_NAME')
+        $villages = $query->with('parent')
+            ->orderBy('VILLAGE_NAME')
             ->get(['VILLAGE_ID', 'VILLAGE_NAME', 'VILLAGE_SORT', 'X_AXIS', 'Y_AXIS', 'FOREIGN_VILLAGE_ID']);
 
         return response()->json($villages->map(function ($v) {
@@ -661,38 +681,38 @@ public function storeAttachment(Request $request, RecieveReport $report)
         $validated = Validator::make(
             $request->all(),
             [
-            'REPORTER_NAME' => ['required', 'string', 'max:50'],
-            'REPORT_FOLLOWUP_NUMBER' => ['required', 'regex:/^(01[0125][0-9]{8}|0[0-9]{9})$/'],
-            'REPORTER_SSN' => ['required', 'digits:14', 'regex:/^[23]\d{13}$/'],
-            'REPORT_START_DATE' => ['required', 'date'],
-            'REPORT_START_TIME' => ['required'],
-            'REPORTING_Auth' => ['required', 'string', 'max:500', Rule::in($this->authorityOptions()->all())],
-            'REPORTING_SORT' => [
-                'required',
-                Rule::exists('REPORTING_TYPES', 'REPORT_ID')
-                    ->where(fn ($query) => $query->whereRaw('TRIM(AUTHORITY) = ?', [$request->input('REPORTING_Auth')])),
-            ],
-            'CITY' => ['required', 'exists:CITY,CITY_ID'],
-            'location_type' => ['required', 'in:مدينة,قرية'],
-            'VILLAGE' => ['required', 'exists:VILLAGE,VILLAGE_ID'],
-            'X_AXIS' => ['nullable', 'numeric'],
-            'Y_AXIS' => ['nullable', 'numeric'],
-            'PLACE_Accident' => ['required', 'string', 'max:500'],
-            'DAMAGE' => ['required', 'string'],
-            'notified_authorities' => ['nullable', 'array'],
-            'notified_authorities.*' => ['string'],
-            'injured' => ['nullable', 'array'],
-            'injured.*.name' => ['required_with:injured', 'string', 'max:50'],
-            'injured.*.birth_date' => ['required_with:injured', 'integer', 'min:0', 'max:150'],
-            'injured.*.diagnosis' => ['nullable', 'string', 'max:500'],
-            'injured.*.followup' => ['nullable', 'string'],
-            'INFECTED_NUM' => ['nullable', 'integer', 'min:0'],
-            'Deceased_Num' => ['nullable', 'integer', 'min:0'],
-            'deceased' => ['nullable', 'array'],
-            'deceased.*.name' => ['required_with:deceased', 'string', 'max:50'],
-            'deceased.*.birth_date' => ['required_with:deceased', 'integer', 'min:0', 'max:150'],
-            'deceased.*.address' => ['nullable', 'string'],
-            'deceased.*.followup' => ['nullable', 'string'],
+                'REPORTER_NAME' => ['required', 'string', 'max:50'],
+                'REPORT_FOLLOWUP_NUMBER' => ['required', 'regex:/^(01[0125][0-9]{8}|0[0-9]{9})$/'],
+                'REPORTER_SSN' => ['required', 'digits:14', 'regex:/^[23]\d{13}$/'],
+                'REPORT_START_DATE' => ['required', 'date'],
+                'REPORT_START_TIME' => ['required'],
+                'REPORTING_Auth' => ['required', 'string', 'max:500', Rule::in($this->authorityOptions()->all())],
+                'REPORTING_SORT' => [
+                    'required',
+                    Rule::exists('REPORTING_TYPES', 'REPORT_ID')
+                        ->where(fn ($query) => $query->whereRaw('TRIM(AUTHORITY) = ?', [$request->input('REPORTING_Auth')])),
+                ],
+                'CITY' => ['required', 'exists:CITY,CITY_ID'],
+                'location_type' => ['required', 'in:مدينة,قرية'],
+                'VILLAGE' => ['required', 'exists:VILLAGE,VILLAGE_ID'],
+                'X_AXIS' => ['nullable', 'numeric'],
+                'Y_AXIS' => ['nullable', 'numeric'],
+                'PLACE_Accident' => ['required', 'string', 'max:500'],
+                'DAMAGE' => ['required', 'string'],
+                'notified_authorities' => ['nullable', 'array'],
+                'notified_authorities.*' => ['string'],
+                'injured' => ['nullable', 'array'],
+                'injured.*.name' => ['required_with:injured', 'string', 'max:50'],
+                'injured.*.birth_date' => ['required_with:injured', 'integer', 'min:0', 'max:150'],
+                'injured.*.diagnosis' => ['nullable', 'string', 'max:500'],
+                'injured.*.followup' => ['nullable', 'string'],
+                'INFECTED_NUM' => ['nullable', 'integer', 'min:0'],
+                'Deceased_Num' => ['nullable', 'integer', 'min:0'],
+                'deceased' => ['nullable', 'array'],
+                'deceased.*.name' => ['required_with:deceased', 'string', 'max:50'],
+                'deceased.*.birth_date' => ['required_with:deceased', 'integer', 'min:0', 'max:150'],
+                'deceased.*.address' => ['nullable', 'string'],
+                'deceased.*.followup' => ['nullable', 'string'],
             ],
             $this->reportValidationMessages(),
             $this->reportValidationAttributes()
@@ -704,8 +724,7 @@ public function storeAttachment(Request $request, RecieveReport $report)
         $startDate = $isAdmin ? $validated['REPORT_START_DATE'] : now()->format('Y-m-d');
         $startTime = $isAdmin ? $validated['REPORT_START_TIME'] : now()->format('H:i:s');
 
-        $report = DB::transaction(function () use ($validated, $startDate, $startTime) {
-            $request = request();
+        $report = DB::transaction(function () use ($validated, $startDate, $startTime, $request) {
             $report = RecieveReport::create([
                 'REPORTER_SSN' => $validated['REPORTER_SSN'],
                 'REPORTER_NAME' => $validated['REPORTER_NAME'],
@@ -720,8 +739,12 @@ public function storeAttachment(Request $request, RecieveReport $report)
                 'Y_AXIS' => $validated['Y_AXIS'] ?? 0,
                 'DAMAGE' => $validated['DAMAGE'],
                 'PLACE_Accident' => $validated['PLACE_Accident'],
-            'Deceased_Num' => $request->filled('Deceased_Num') ? (int) $request->Deceased_Num : ((isset($validated['deceased']) && is_array($validated['deceased'])) ? count($validated['deceased']) : 0),
-            'INFECTED_NUM' => $request->filled('INFECTED_NUM') ? (int) $request->INFECTED_NUM : ((isset($validated['injured']) && is_array($validated['injured'])) ? count($validated['injured']) : 0),
+                'Deceased_Num' => $request->filled('Deceased_Num')
+                    ? (int) $request->Deceased_Num
+                    : count($validated['deceased'] ?? []),
+                'INFECTED_NUM' => $request->filled('INFECTED_NUM')
+                    ? (int) $request->INFECTED_NUM
+                    : count($validated['injured'] ?? []),
                 'REPORT_END_DATE' => null,
                 'REPORT_END_TIME' => null,
                 'LOCKED_BY' => null,
