@@ -38,6 +38,17 @@ class ReportsViewerRoleSeeder extends Seeder
     ];
 
     /**
+     * صلاحيات أساسية بنستخدمها في فحص الأدوار/المستخدمين،
+     * بنتأكد إنها موجودة برضه قبل الفحص عشان مفيش استثناء PermissionDoesNotExist.
+     */
+    private const BASELINE_PERMISSIONS = [
+        'reports.view',
+        'signals.view',
+        'tmam.view',
+        'tasks.view',
+    ];
+
+    /**
      * php artisan db:seed --class=ReportsViewerRoleSeeder
      *
      * Seeder آمن ومتكرر (idempotent): تقدر تشغّله أكتر من مرة من غير ما يضاعف حاجة.
@@ -48,17 +59,29 @@ class ReportsViewerRoleSeeder extends Seeder
     {
         app()[PermissionRegistrar::class]->forgetCachedPermissions();
 
-        // 1) إنشاء الصلاحيات الجديدة لو مش موجودة
-        foreach (self::NEW_PERMISSIONS as $permissionName) {
+        // 1) إنشاء الصلاحيات الجديدة + كل صلاحيات الدور لو مش موجودة
+        //    (مهم جدًا على السيرفر: ممكن dashboard.view تكون مش موجودة أصلًا
+        //     ووقتها syncPermissions بيرمي PermissionDoesNotExist)
+        $permissionsToEnsure = array_unique(array_merge(
+            self::NEW_PERMISSIONS,
+            self::BASELINE_PERMISSIONS,
+            self::REPORTS_VIEWER_PERMISSIONS,
+        ));
+
+        foreach ($permissionsToEnsure as $permissionName) {
             Permission::firstOrCreate(['name' => $permissionName, 'guard_name' => 'web']);
         }
 
         // 2) الحفاظ على وصول باقي الأدوار زي ما كان قبل التقسيم:
         //    أي دور شايف البلاغات أو الإشارات كان بيشوف الإعدادات كمان.
+        //    وكمان بندّي كل الأدوار القديمة dashboard.view عشان الصفحة الرئيسية
+        //    ما تتقفلش عليهم بعد ما بقى عليها middleware.
         foreach (Role::with('permissions')->get() as $role) {
             if ($role->name === self::REPORTS_VIEWER_ROLE) {
                 continue; // الدور ده ليه صلاحيات محددة تحت، ومش لازم يشوف الإعدادات
             }
+
+            $role->givePermissionTo('dashboard.view');
 
             if ($role->hasAnyPermission(['reports.view', 'signals.view'])) {
                 $role->givePermissionTo('settings.view');
@@ -73,8 +96,20 @@ class ReportsViewerRoleSeeder extends Seeder
             }
         }
 
-        // 3) نفس الحفاظ على الوصول للمستخدمين اللي واخدين صلاحيات مباشرة (من غير دور)
+        // 3) نفس الحفاظ على الوصول للمستخدمين:
+        //    اللي واخد صلاحيات مباشرة بندّيله صلاحيات الإعدادات/التمام/التكليف المناسبة،
+        //    وأي مستخدم مش واخد dashboard.view بأي طريقة بندّيهاله عشان مايتقفلش عليه.
+        //    مستخدمين دور "مشاهد التقارير" بنستثنيهم من المنطق ده تمامًا
+        //    عشان ماياخدوش صلاحيات مباشرة تكسر تقييد الدور.
         foreach (User::with('permissions')->get() as $user) {
+            if ($user->hasRole(self::REPORTS_VIEWER_ROLE)) {
+                continue;
+            }
+
+            if (! $user->hasPermissionTo('dashboard.view')) {
+                $user->givePermissionTo('dashboard.view');
+            }
+
             $directPermissions = $user->getDirectPermissions()->pluck('name');
 
             if ($directPermissions->intersect(['reports.view', 'signals.view'])->isNotEmpty()) {
