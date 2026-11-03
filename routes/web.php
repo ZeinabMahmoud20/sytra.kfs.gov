@@ -35,7 +35,9 @@ use App\Livewire\Evaluations\EntityManager;
 
 Route::view('/', 'welcome');
 
-Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard')->middleware(['auth']);
+Route::get('/dashboard', [DashboardController::class, 'index'])
+    ->name('dashboard')
+    ->middleware(['auth', 'permission:dashboard.view']);
 
 Route::view('profile', 'profile')
     ->middleware(['auth'])
@@ -137,9 +139,12 @@ Route::middleware(['auth'])->group(function () {
 
 
 
-Route::middleware('can:tmam.view')->group(function () {
+// إحصائيات الجهات: صلاحية مستقلة عشان تقدر تدّي حد التقارير بس من غير شاشات التمام
+Route::middleware('can:tmam.statistics')->group(function () {
     Route::get('entity-attendance-dashboard', EntityAttendanceDashboardController::class)->name('entity-attendance-dashboard');
+});
 
+Route::middleware('can:tmam.view')->group(function () {
     Route::get('entities', [EntityController::class, 'index'])->name('entities.index');
 
     Route::get('attendance-templates', [AttendanceTemplateController::class, 'index'])->name('attendance-templates.index');
@@ -270,7 +275,7 @@ Route::middleware(['auth'])->group(function () {
     });
 
     // مصادر التكليف
-    Route::middleware('can:tasks.view')->group(function () {
+    Route::middleware('can:tasks.sources')->group(function () {
         Route::get('task-sources', [TaskSourceController::class, 'index'])->name('task-sources.index');
     });
     Route::middleware('can:tasks.create')->group(function () {
@@ -286,7 +291,7 @@ Route::middleware(['auth'])->group(function () {
     });
 
     // الجهات المختصة للتعامل
-    Route::middleware('can:tasks.view')->group(function () {
+    Route::middleware('can:tasks.entities')->group(function () {
         Route::get('task-entities', [TaskEntityController::class, 'index'])->name('task-entities.index');
     });
     Route::middleware('can:tasks.create')->group(function () {
@@ -304,10 +309,10 @@ Route::middleware(['auth'])->group(function () {
 
 
 // ===== إعدادات البلاغات والإشارات (أنواع البلاغات وجهات البلاغ والإخطار والإشارة) =====
-Route::prefix('settings')->name('settings.')->middleware(['auth'])->group(function () {
+Route::prefix('settings')->name('settings.')->middleware(['auth', 'can:settings.view'])->group(function () {
 
     // أنواع البلاغات (REPORTING_TYPES) - جهة البلاغ موجودة في نفس الجدول (AUTHORITY)
-    Route::middleware('can:reports.view')->group(function () {
+    Route::middleware('can:settings.view')->group(function () {
         Route::get('reporting-types', [ReportingTypeController::class, 'index'])->name('reporting-types.index');
     });
     Route::middleware('can:reports.create')->group(function () {
@@ -323,7 +328,7 @@ Route::prefix('settings')->name('settings.')->middleware(['auth'])->group(functi
     });
 
     // جهات الإشارة (SIGNAL_AUTHORITY)
-    Route::middleware('can:signals.view')->group(function () {
+    Route::middleware('can:settings.view')->group(function () {
         Route::get('signal-authorities', [SignalAuthorityController::class, 'index'])->name('signal-authorities.index');
     });
     Route::middleware('can:signals.create')->group(function () {
@@ -339,7 +344,7 @@ Route::prefix('settings')->name('settings.')->middleware(['auth'])->group(functi
     });
 
     // مجموعات جهات الإشارة (SIGNAL_AUTHORITY_GROUP) - بتجمع أكثر من جهة في مجموعة واحدة
-    Route::middleware('can:signals.view')->group(function () {
+    Route::middleware('can:settings.view')->group(function () {
         Route::get('signal-authority-groups', [SignalAuthorityGroupController::class, 'index'])->name('signal-authority-groups.index');
     });
     Route::middleware('can:signals.create')->group(function () {
@@ -355,7 +360,7 @@ Route::prefix('settings')->name('settings.')->middleware(['auth'])->group(functi
     });
 
     // جهات الإخطار (NotifiedAuthTBL)
-    Route::middleware('can:reports.view')->group(function () {
+    Route::middleware('can:settings.view')->group(function () {
         Route::get('notified-auths', [NotifiedAuthController::class, 'index'])->name('notified-auths.index');
     });
     Route::middleware('can:reports.create')->group(function () {
@@ -371,7 +376,7 @@ Route::prefix('settings')->name('settings.')->middleware(['auth'])->group(functi
     });
 
     // مضمون الإشارة (SIGNAL_CONTENT)
-    Route::middleware('can:signals.view')->group(function () {
+    Route::middleware('can:settings.view')->group(function () {
         Route::get('signal-contents', [SignalContentController::class, 'index'])->name('signal-contents.index');
     });
     Route::middleware('can:signals.create')->group(function () {

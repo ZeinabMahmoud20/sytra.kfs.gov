@@ -4,6 +4,7 @@ return [
 
     // ترجمة أسماء الـ Modules
     'modules' => [
+        'dashboard' => 'لوحة التحكم',
         'reports' => 'البلاغات',
         'signals' => 'الإشارات',
         'users' => 'المستخدمين',
@@ -14,7 +15,9 @@ return [
         'villages' => 'القرى',
         'tmam' => 'تمام',
         'evaluations' => 'تقييم الجهات',
-        'contact-guides' => 'دليل الاتصال',        
+        'contact-guides' => 'دليل الاتصال',
+        'tasks' => 'متابعة التكليفات',
+        'settings' => 'الإعدادات',
         // ضيف هنا أي module جديد يظهر عندك
     ],
 
@@ -37,6 +40,10 @@ return [
         'manage' => 'إدارة',
         'evaluate' => 'تقييم',
         'dashboard'=> 'لوحة تحكم',
+        'sources' => 'مصادر',
+        'entities' => 'الجهات',
+        'statistics' => 'إحصائيات',
+        'reports' => 'تقارير',
 
         // ضيف هنا أي action جديد يظهر عندك
     ],

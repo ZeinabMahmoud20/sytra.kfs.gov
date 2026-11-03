@@ -117,13 +117,18 @@ Migrations: `2026_01_01_000014_create_injured_table.php`، `2026_01_01_000013_cr
 
 ### 2.7 تنبيه: الفرق عن وحدة الإشارات / Signals ≠ Reports
 
+> 📄 التوثيق الكامل للإشارات: [docs/signals-module.md](signals-module.md)
+
 | | البلاغات (Reports) | الإشارات (Signals) |
 |---|---|---|
-| جدول الكيان | `RECIEVE_REPORT` | `MAIN_SIGNAL` + `SEND_SIGNAL` ... |
-| مصدر "جهة" | `REPORTING_TYPES.AUTHORITY` | جدول `AUTHORITY` المنفصل |
-| مرجع النوع | `REPORTING_SORT` → `REPORTING_TYPES` | `SignalContent`/`SignalUnit` |
+| التوثيق | هذه الوثيقة | [signals-module.md](signals-module.md) |
+| جدول الكيان | `RECIEVE_REPORT` (بلاغ واحد) | `MainSignalTBL` (جذر ثريد) + `SIGNAL_UNIT` (كروت) |
+| مصدر "جهة" | `REPORTING_TYPES.AUTHORITY` | `SIGNAL_AUTHORITY` (جدول منفصل تمامًا) |
+| مرجع النوع | `REPORTING_SORT` → `REPORTING_TYPES` | `UNIT_SIGNAL_TYPE` (نص صريح) أو `SIGNAL_CONTENT` |
+| الحالة/القفل | 4 حالات + قفل إداري | لا يوجد — فقط `SignalAuth.STATE` = `Correct`/`X` |
+| الترقيم | `REP-{n}` | `SIGNAL-{n}` |
 
-المصطلح الإنجليسي في الكود مكسور عمديًا (`Recieve` بدل `Receive`) للتوافق مع أسماء الجداول القديمة — **لا تصحّحه إلا مع migration كاملة**.
+المصطلح الإنجليسي في الكود مكسور عمديًا (`Recieve` بدل `Receive`) للتوافق مع أسماء الجداول القديمة — **لا تصحّحه إلا مع migration كاملة**. ملاحظة: جدول `AUTHORITY` المنفصل المذكور في تعليقات `ReportController` هو جدول الإشارات القديم؛ المسار النشط للإشارات يستخدم `SIGNAL_AUTHORITY`.
 
 ### 2.8 علاقات Model ER / Relationships
 

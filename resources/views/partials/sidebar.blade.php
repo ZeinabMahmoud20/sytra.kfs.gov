@@ -2,7 +2,7 @@
     // روابط بسيطة (بدون قائمة منسدلة) بتظهر بشكل مباشر
     // permission = null معناه الرابط ده ظاهر لأي مستخدم مسجل دخول من غير شرط صلاحية
     $simpleTopLinks = [
-        ['route' => 'dashboard', 'icon' => 'fa-th-large', 'label' => 'الصفحة الرئيسية', 'permission' => null],
+        ['route' => 'dashboard', 'icon' => 'fa-th-large', 'label' => 'الصفحة الرئيسية', 'permission' => 'dashboard.view'],
     ];
 @endphp
 
@@ -191,7 +191,7 @@
                             </a>
                         @endcan
 
-                        @can('tasks.view')
+                        @can('tasks.sources')
                             <a href="{{ route('task-sources.index') }}"
                                 class="flex items-center gap-3 px-4 py-2 rounded-lg transition-all duration-300 text-sm
                                     {{ request()->routeIs('task-sources.*') ? 'bg-white/15 text-white font-bold' : 'hover:bg-white/10 text-white/80' }}">
@@ -200,7 +200,7 @@
                             </a>
                         @endcan
 
-                        @can('tasks.view')
+                        @can('tasks.entities')
                             <a href="{{ route('task-entities.index') }}"
                                 class="flex items-center gap-3 px-4 py-2 rounded-lg transition-all duration-300 text-sm
                                     {{ request()->routeIs('task-entities.*') ? 'bg-white/15 text-white font-bold' : 'hover:bg-white/10 text-white/80' }}">
@@ -262,8 +262,8 @@
                 </div>
             @endcanany
 
-            {{-- 6) التمامات - زي ما هي من غير تعديل --}}
-            @can('tmam.view')
+            {{-- 6) التمامات (شاشات التمام + إحصائيات الجهات) --}}
+            @canany(['tmam.view', 'tmam.statistics'])
                 @php
                     $tmamRoutes = ['daily-attendances.index', 'daily-attendances.show', 'attendance-templates.*', 'entities.*', 'entity-attendance-dashboard'];
                     $isTmamActive = request()->routeIs($tmamRoutes);
@@ -282,36 +282,40 @@
                     </button>
 
                     <div id="tmam-submenu" class="{{ $isTmamActive ? '' : 'hidden' }} mt-1 mr-4 space-y-1 border-r-2 border-white/10 pr-4">
-                        <a href="{{ route('daily-attendances.index') }}"
-                            class="flex items-center gap-3 px-4 py-2 rounded-lg transition-all duration-300 text-sm
-                                {{ request()->routeIs('daily-attendances.*') ? 'bg-white/15 text-white font-bold' : 'hover:bg-white/10 text-white/80' }}">
-                            <i class="fas fa-calendar-day w-5 text-center text-accent"></i>
-                            تمامات اليوم
-                        </a>
+                        @can('tmam.view')
+                            <a href="{{ route('daily-attendances.index') }}"
+                                class="flex items-center gap-3 px-4 py-2 rounded-lg transition-all duration-300 text-sm
+                                    {{ request()->routeIs('daily-attendances.*') ? 'bg-white/15 text-white font-bold' : 'hover:bg-white/10 text-white/80' }}">
+                                <i class="fas fa-calendar-day w-5 text-center text-accent"></i>
+                                تمامات اليوم
+                            </a>
 
-                        <a href="{{ route('attendance-templates.index') }}"
-                            class="flex items-center gap-3 px-4 py-2 rounded-lg transition-all duration-300 text-sm
-                                {{ request()->routeIs('attendance-templates.*') ? 'bg-white/15 text-white font-bold' : 'hover:bg-white/10 text-white/80' }}">
-                            <i class="fas fa-list-ul w-5 text-center text-accent"></i>
-                            قائمة التمامات
-                        </a>
+                            <a href="{{ route('attendance-templates.index') }}"
+                                class="flex items-center gap-3 px-4 py-2 rounded-lg transition-all duration-300 text-sm
+                                    {{ request()->routeIs('attendance-templates.*') ? 'bg-white/15 text-white font-bold' : 'hover:bg-white/10 text-white/80' }}">
+                                <i class="fas fa-list-ul w-5 text-center text-accent"></i>
+                                قائمة التمامات
+                            </a>
 
-                        <a href="{{ route('entities.index') }}"
-                            class="flex items-center gap-3 px-4 py-2 rounded-lg transition-all duration-300 text-sm
-                                {{ request()->routeIs('entities.*') ? 'bg-white/15 text-white font-bold' : 'hover:bg-white/10 text-white/80' }}">
-                            <i class="fas fa-building w-5 text-center text-accent"></i>
-                            قائمة الجهات
-                        </a>
+                            <a href="{{ route('entities.index') }}"
+                                class="flex items-center gap-3 px-4 py-2 rounded-lg transition-all duration-300 text-sm
+                                    {{ request()->routeIs('entities.*') ? 'bg-white/15 text-white font-bold' : 'hover:bg-white/10 text-white/80' }}">
+                                <i class="fas fa-building w-5 text-center text-accent"></i>
+                                قائمة الجهات
+                            </a>
+                        @endcan
 
-                        <a href="{{ route('entity-attendance-dashboard') }}"
-                            class="flex items-center gap-3 px-4 py-2 rounded-lg transition-all duration-300 text-sm
-                                {{ request()->routeIs('entity-attendance-dashboard') ? 'bg-white/15 text-white font-bold' : 'hover:bg-white/10 text-white/80' }}">
-                            <i class="fas fa-chart-bar w-5 text-center text-accent"></i>
-                            إحصائيات الجهات
-                        </a>
+                        @can('tmam.statistics')
+                            <a href="{{ route('entity-attendance-dashboard') }}"
+                                class="flex items-center gap-3 px-4 py-2 rounded-lg transition-all duration-300 text-sm
+                                    {{ request()->routeIs('entity-attendance-dashboard') ? 'bg-white/15 text-white font-bold' : 'hover:bg-white/10 text-white/80' }}">
+                                <i class="fas fa-chart-bar w-5 text-center text-accent"></i>
+                                إحصائيات الجهات
+                            </a>
+                        @endcan
                     </div>
                 </div>
-            @endcan
+            @endcanany
 
             {{-- 7) تقييم الجهات - زي ما هي من غير تعديل --}}
             @canany(['evaluations.evaluate', 'evaluations.manage', 'evaluations.dashboard'])
@@ -428,7 +432,7 @@
             @endcanany
 
             {{-- 9) الإعدادات (أنواع البلاغات وجهات البلاغ والإشارة والإخطار ومضمون الإشارة) --}}
-            @canany(['reports.view', 'signals.view'])
+            @can('settings.view')
                 @php
                     $settingsRoutes = [
                         'settings.reporting-types.*',
@@ -453,7 +457,7 @@
                     </button>
 
                     <div id="settings-submenu" class="{{ $isSettingsActive ? '' : 'hidden' }} mt-1 mr-4 space-y-1 border-r-2 border-white/10 pr-4">
-                        @can('reports.view')
+                        @can('settings.view')
                             <a href="{{ route('settings.reporting-types.index') }}"
                                 class="flex items-center gap-3 px-4 py-2 rounded-lg transition-all duration-300 text-sm
                                     {{ request()->routeIs('settings.reporting-types.*') ? 'bg-white/15 text-white font-bold' : 'hover:bg-white/10 text-white/80' }}">
@@ -462,7 +466,7 @@
                             </a>
                         @endcan
 
-                        @can('signals.view')
+                        @can('settings.view')
                             <a href="{{ route('settings.signal-authorities.index') }}"
                                 class="flex items-center gap-3 px-4 py-2 rounded-lg transition-all duration-300 text-sm
                                     {{ request()->routeIs('settings.signal-authorities.*') ? 'bg-white/15 text-white font-bold' : 'hover:bg-white/10 text-white/80' }}">
@@ -471,7 +475,7 @@
                             </a>
                         @endcan
 
-                        @can('signals.view')
+                        @can('settings.view')
                             <a href="{{ route('settings.signal-authority-groups.index') }}"
                                 class="flex items-center gap-3 px-4 py-2 rounded-lg transition-all duration-300 text-sm
                                     {{ request()->routeIs('settings.signal-authority-groups.*') ? 'bg-white/15 text-white font-bold' : 'hover:bg-white/10 text-white/80' }}">
@@ -480,7 +484,7 @@
                             </a>
                         @endcan
 
-                        @can('reports.view')
+                        @can('settings.view')
                             <a href="{{ route('settings.notified-auths.index') }}"
                                 class="flex items-center gap-3 px-4 py-2 rounded-lg transition-all duration-300 text-sm
                                     {{ request()->routeIs('settings.notified-auths.*') ? 'bg-white/15 text-white font-bold' : 'hover:bg-white/10 text-white/80' }}">
@@ -489,7 +493,7 @@
                             </a>
                         @endcan
 
-                        @can('signals.view')
+                        @can('settings.view')
                             <a href="{{ route('settings.signal-contents.index') }}"
                                 class="flex items-center gap-3 px-4 py-2 rounded-lg transition-all duration-300 text-sm
                                     {{ request()->routeIs('settings.signal-contents.*') ? 'bg-white/15 text-white font-bold' : 'hover:bg-white/10 text-white/80' }}">
@@ -499,7 +503,7 @@
                         @endcan
                     </div>
                 </div>
-            @endcanany
+            @endcan
 
         </nav>
 
